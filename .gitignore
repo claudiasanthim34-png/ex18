@@ -1,0 +1,27 @@
+# Simulink cache and project files
+slprj/
+*.slxc
+*.slx.autosave
+
+# MATLAB editor autosave
+*.asv
+
+# Generated simulation outputs
+output/
+
+# Patch backups
+patches/output/
+
+# Temporary test models
+tmp_scope_check.slx
+
+# MATLAB preferences
+*.m~
+
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
