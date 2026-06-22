@@ -1,4 +1,4 @@
-function [fir_coeff, model] = ex18_make_ex08_soil_fir(gpr, sample_s)
+function [fir_coeff, model] = ex18_make_soil_fir(gpr, sample_s)
 %EX18_MAKE_SOIL_FIR 将频域土壤模型转换成 ex18 时域 FIR 通道。
 %   Channel 按整段 SFCW 频谱计算土壤、地表、杂波和管道响应。
 %   通过对各分量频响做 Hermitian IFFT 得到实系数 FIR 滤波器。
@@ -8,7 +8,7 @@ nfft = gpr.fir_nfft;
 fir_len = gpr.fir_len;
 
 if mod(nfft, 2) ~= 0
-    error('ex18_make_ex08_soil_fir:BadNfft', 'gpr.fir_nfft 必须是偶数。');
+    error('ex18_make_soil_fir:BadNfft', 'gpr.fir_nfft 必须是偶数。');
 end
 
 freq_pos_hz = (0:nfft / 2).' * fs_hz / nfft;

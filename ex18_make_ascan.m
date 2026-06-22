@@ -87,7 +87,7 @@ ensure_workspace_ready();
 raw_response = response;
 
 % 背景处理用于把直耦、地表反射和弱杂波尽量扣掉，让目标回波更清楚。
-% 默认 BackgroundMode = 'model'，即使用 ex18_make_ex08_soil_fir 生成的
+% 默认 BackgroundMode = 'model'，即使用 ex18_make_soil_fir 生成的
 % 模型分量 background_response 做背景扣除。
 [response, background] = apply_background_processing(frequency_hz, response, opts);
 
@@ -303,7 +303,7 @@ if base_has_var(opts.InputSignal) && base_has_var('sfw_src_ts')
 end
 
 if base_has_var('gpr_soil_model')
-    % 没有仿真日志时，使用 ex18_make_ex08_soil_fir 保存的频域模型响应。
+    % 没有仿真日志时，使用 ex18_make_soil_fir 保存的频域模型响应。
     % 这个路径不经过 RF Blockset 时域仿真，所以速度很快。
     model = evalin('base', 'gpr_soil_model');
     response = response_from_soil_model(model, frequency_hz);

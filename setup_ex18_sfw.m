@@ -303,7 +303,7 @@ cfg.gpr.direct_delay_samples = delay_samples(cfg.gpr.direct_delay_s, meta.sample
 cfg.gpr.surface_delay_samples = delay_samples(cfg.gpr.surface_delay_s, meta.sample_s);
 cfg.gpr.fir_len = resolve_gpr_fir_len(cfg.gpr, meta.sample_s);
 
-[cfg.gpr.soil_fir, cfg.gpr.soil_model] = ex18_make_ex08_soil_fir(cfg.gpr, meta.sample_s);
+[cfg.gpr.soil_fir, cfg.gpr.soil_model] = ex18_make_soil_fir(cfg.gpr, meta.sample_s);
 cfg.gpr.direct_gain = cfg.gpr.soil_model.direct_gain;
 cfg.gpr.surface_gain = cfg.gpr.soil_model.surface_gain;
 cfg.gpr.target_gain = cfg.gpr.soil_model.target_gain;

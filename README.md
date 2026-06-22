@@ -1,6 +1,6 @@
 # ex18 SFW RF Front-End Demo
 
-`ex18` 是步进频率波形（SFW, stepped-frequency waveform）和 RF Blockset 前端观察工程。信号源仍由 MATLAB timeseries 生成，耦合器、衰减器、可调放大器和功率放大器使用 RF Blockset 器件/网络。当前版本已经加入由 ex08 土壤模型转换得到的 GPR 时域 FIR 通道、接收天线、耦合支路 200 MHz 上变频和接收端下变频链路。
+`ex18` 是步进频率波形（SFW, stepped-frequency waveform）和 RF Blockset 前端观察工程。信号源由 MATLAB timeseries 生成，耦合器、衰减器、可调放大器和功率放大器使用 RF Blockset 器件/网络。包含 GPR 时域 FIR 通道（均匀有损土壤、管道目标、弱随机杂波）、接收天线、耦合支路 200 MHz 上变频和接收端下变频链路。
 
 ## Run
 
@@ -103,7 +103,7 @@ RF_In -> RF_Coupler -> RF_Attn -> RF_VGA -> RF_PA -> RF_Out -> Scope_RF_Main_Out
 | `RF_Out` | 主路 RF 输出端口，将 RF Blockset 信号转为 Simulink 信号 |
 | `TX_Radiator` | 主路发射天线，当前为 Phased Array 的各向同性辐射器 |
 | `Radiation_Angle` | 发射方向，当前为 `[0;0]`，即方位角/俯仰角均为 0 度 |
-| `GPR_Channel` | ex08 土壤模型 FIR 通道，包含直耦、地表反射、弱杂波和管道目标 |
+| `GPR_Channel` | 均匀有损土壤模型 FIR 通道，包含直耦、地表反射、弱杂波和管道目标 |
 | `RX_Antenna` | 接收天线，当前为 Phased Array 的各向同性接收器 |
 | `RX_Angle` | 接收方向，当前为 `[0;0]` |
 | `Tap_LO_200MHz` | 200 MHz 本振，输出 `tap_lo_amp*cos(2*pi*tap_lo_hz*t)` |
@@ -143,7 +143,7 @@ RF_In -> RF_Coupler -> RF_Attn -> RF_VGA -> RF_PA -> RF_Out -> Scope_RF_Main_Out
 
 | 目录 | 内容 |
 |---|---|
-| `filterlib/` | FIR 带通/低通滤波器设计 (`ex18_design_fir_bandpass.m`, `ex18_design_fir_lowpass.m`) 和土壤 FIR 转换 (`ex18_make_ex08_soil_fir.m`) |
+| `filterlib/` | FIR 带通/低通滤波器设计 (`ex18_design_fir_bandpass.m`, `ex18_design_fir_lowpass.m`) 和土壤 FIR 转换 (`ex18_make_soil_fir.m`) |
 | `dialogs/` | 模块双击回调：放大器增益编辑 (`ex18_amp_dialog.m`) 和滤波器参数编辑 (`ex18_filter_dialog.m`) |
 | `patches/` | 历史一次性修复脚本（已归档，不再使用） |
 
@@ -175,11 +175,11 @@ RF_In -> RF_Coupler -> RF_Attn -> RF_VGA -> RF_PA -> RF_Out -> Scope_RF_Main_Out
 | `rf_cpl_return_loss_db` | 耦合器端口回波损耗 |
 | `rf_cpl_s` | RF_Coupler 使用的四端口 S 参数矩阵 |
 | `rf_cpl_freq_hz` | 耦合器参数参考频率 |
-| `gpr_soil_eps_r` | 简化 GPR 通道使用的土壤相对介电常数，来自 ex08 |
-| `gpr_soil_sigma_s_per_m` | 土壤电导率，单位 S/m，来自 ex08 |
-| `gpr_soil_fir` | GPR_Channel 使用的 ex08 土壤模型 FIR 系数 |
+| `gpr_soil_eps_r` | GPR 通道使用的土壤相对介电常数 |
+| `gpr_soil_sigma_s_per_m` | 土壤电导率，单位 S/m |
+| `gpr_soil_fir` | GPR_Channel 使用的土壤模型 FIR 系数 |
 | `gpr_soil_model` | FIR 生成时保存的频响、冲激响应和通道分量信息 |
-| `gpr_channel_freq_hz` / `gpr_channel_response` | ex08 土壤模型在 FIR 频率网格上的频响 |
+| `gpr_channel_freq_hz` / `gpr_channel_response` | 土壤模型在 FIR 频率网格上的频响 |
 | `gpr_direct_delay_samples` | 直耦路径延迟样点数 |
 | `gpr_surface_delay_samples` | 地表反射路径延迟样点数 |
 | `gpr_target_delay_samples` | 目标回波路径延迟样点数 |
@@ -217,10 +217,17 @@ cfg.front.cpl_directivity_db = inf;
 cfg.front.cpl_insertion_loss_db = 3;
 cfg.front.cpl_return_loss_db = inf;
 
-ex08 = sfcw_pipe_get_config('backend', 'simplified');
-cfg.gpr.soil_eps_r = ex08.soil.eps_r;
-cfg.gpr.soil_sigma_s_per_m = ex08.soil.sigma_s_per_m;
-cfg.gpr.target_depth_m = ex08.pipe.center_z_m;
+cfg.gpr.soil_eps_r = 9.0;
+cfg.gpr.soil_sigma_s_per_m = 0.012;
+cfg.gpr.txrx_spacing_m = 0.4;
+cfg.gpr.antenna_height_m = 1.5;
+cfg.gpr.direct_coupling_amplitude = 0.10;
+cfg.gpr.direct_extra_delay_s = 1.5e-9;
+cfg.gpr.surface_reflectivity = 0.75;
+cfg.gpr.clutter_count = 14;
+cfg.gpr.clutter_depth_range_m = [0.18, 1.20];
+cfg.gpr.clutter_reflectivity_range = [0.008, 0.028];
+cfg.gpr.clutter_random_seed = 11;
 cfg.gpr.fir_len = [];
 cfg.gpr.fir_guard_s = 10e-9;
 
@@ -252,11 +259,11 @@ cfg.iq_demod.lpf_order = 1024;
 
 主路前端当前为 `RF_Coupler -> RF_Attn -> RF_VGA -> RF_PA -> RF_Out`。默认 `RF_VGA = 0 dB`、`RF_PA = 10 dB`，使 `VGA + PA` 总增益接近原来单个 10 dB 放大级；后续调主路增益时优先改 `cfg.front.vga_gain_db` 和 `cfg.front.pa_gain_db`。
 
-`setup_ex18_sfw.m` 会直接读取 `ex08/sfcw_pipe_get_config.m` 的 simplified 配置。`GPR_Channel` 使用 `ex18_make_ex08_soil_fir.m` 复现 ex08 simplified 后端的均匀有损土壤、地表反射、弱杂波和管道目标频响，并转换成适合 ex18 时域链路的 FIR 滤波器。ex18 当前仍是单个固定扫描位置的时域前端模型，不是 ex08 那种完整 B-scan 频域处理链。
+`setup_ex18_sfw.m` 在 `default_cfg()` 中直接定义土壤参数（`soil_eps_r = 9.0`, `sigma = 0.012 S/m` 等）。`GPR_Channel` 使用 `ex18_make_soil_fir.m` 计算均匀有损土壤、地表反射、弱杂波和管道目标的频响，并转换成适合 ex18 时域链路的 FIR 滤波器。ex18 是单个固定扫描位置的时域前端模型。
 
 `cfg.gpr.fir_len = []` 表示 FIR 抽头数按当前采样率、目标/杂波最大延迟和 `cfg.gpr.fir_guard_s` 自动计算。当前 1 GHz 默认仿真下约为 64 taps，覆盖目标 13.5 ns 回波；如果改成 50 GHz，则会生成约 2048 taps。
 
-`ex18_make_ascan.m` 默认从 `rx_antenna_log / sfw_src_ts` 按 501 个频点同步解调得到复频响；若没有仿真日志，则使用 `gpr_soil_model.sfcw_response` 生成模型参考 A-scan。脚本默认用 `gpr_soil_model.sfcw_parts.background_response` 做模型背景扣除，并补偿 ex08 前端名义群时延 `3.8 ns`，因此输出的目标峰应接近物理目标延迟。当前单位置预期目标延迟约 `13.54 ns`，等效深度约 `0.677 m`，管道中心深度为 `0.720 m`。
+`ex18_make_ascan.m` 默认从 `rx_antenna_log / sfw_src_ts` 按 501 个频点同步解调得到复频响；若没有仿真日志，则使用 `gpr_soil_model.sfcw_response` 生成模型参考 A-scan。脚本默认用 `gpr_soil_model.sfcw_parts.background_response` 做模型背景扣除，并补偿前端名义群时延 `3.8 ns`，因此输出的目标峰应接近物理目标延迟。当前单位置预期目标延迟约 `13.54 ns`，等效深度约 `0.677 m`，管道中心深度为 `0.720 m`。
 
 耦合支路先做上变频：`RF_Tap_Out -> Tap_Mixer_200MHz -> Tap_Up_BPF`。20-170 MHz 支路信号与 200 MHz 本振混频后，`Tap_Up_BPF` 以 210-380 MHz 通带保留 220-370 MHz 上边带，同时抑制 200 MHz - f 低边带。随后 `RX_Down_Mixer` 将该上变频支路信号与 `RX_Antenna` 输出相乘，`RX_Down_IF_BPF` 以 190-210 MHz 通带保留约 200 MHz 的差频项并抑制实数混频和频项。两个带通均为窗函数 FIR，避免高采样率、低归一化频率下 IIR 直接型滤波器数值发散。`Log_Tap` 记录支路上变频输出，`Log_RX` 记录下变频 IF 输出，`rx_antenna_log` 保存接收天线原始输出。
 
