@@ -6,13 +6,19 @@ function [src_ts, freq_ts, meta] = make_sfw_burst(freq_hz, coef, varargin)
 %   输出 src_ts 是 Simulink 可读取的时间序列，每个 PRI 内包含一个单频信号。
 
 opts = parse_opts(freq_hz, varargin{:});
+n_freq_base = numel(freq_hz);
+if n_freq_base > 1
+    meta_df_hz = freq_hz(2) - freq_hz(1);
+else
+    meta_df_hz = 0;
+end
 [freq_sel, coef_sel, step_idx] = pick_steps(freq_hz, coef, opts);
 grid = make_time_grid(numel(freq_sel), opts);
 src = make_burst_signal(freq_sel, coef_sel, grid, opts);
 
 src_ts = timeseries(src, grid.t_s);
 freq_ts = timeseries(freq_sel * 1e-6, grid.step_start_s);
-meta = make_meta(freq_sel, step_idx, grid, opts);
+meta = make_meta(freq_sel, step_idx, grid, opts, meta_df_hz);
 end
 
 function opts = parse_opts(freq_hz, varargin)
@@ -59,14 +65,16 @@ end
 function [freq_sel, coef_sel, step_idx] = pick_steps(freq_hz, coef, opts)
 freq_hz = freq_hz(:);
 coef = coef(:);
+n_freq = numel(freq_hz);
 
-if numel(coef) ~= numel(freq_hz)
+if numel(coef) ~= n_freq
     error('make_sfw_burst:SizeMismatch', ...
         'freq_hz and coef must have the same length.');
 end
 
-stop_idx = min(numel(freq_hz), opts.start_idx + opts.step_count - 1);
-step_idx = (opts.start_idx:stop_idx).';
+raw = (opts.start_idx - 1 : opts.start_idx + opts.step_count - 2);
+step_idx = mod(raw, n_freq) + 1;
+step_idx = step_idx(:);
 freq_sel = freq_hz(step_idx);
 coef_sel = coef(step_idx);
 end
@@ -117,12 +125,7 @@ for k = 1:numel(freq_hz)
 end
 end
 
-function meta = make_meta(freq_hz, step_idx, grid, opts)
-df_hz = 0;
-if numel(freq_hz) > 1
-    df_hz = mean(diff(freq_hz));
-end
-
+function meta = make_meta(freq_hz, step_idx, grid, opts, df_hz)
 c0 = 299792458;
 meta = struct();
 meta.model = 'SFW burst';
