@@ -47,6 +47,7 @@ assign_tap_mixer_vars(cfg);
 assign_iq_demod_vars(cfg);
 assign_rx_bpf_lna_vars(cfg);
 assign_dsp_ascan_vars(cfg);
+try configure_ascan_display(cfg); catch; end
 print_summary(cfg, meta);
 end
 %配置各部分参数
@@ -373,6 +374,10 @@ cfg.dsp_ascan.nfft = 4096;
 % IFFT 每 bin 对应时延步长，单位 ns：dt = 1 / (n_freq * df)
 cfg.dsp_ascan.delay_step_ns = 1 / (n_freq * cfg.freq.df_hz) * 1e9;
 
+% A-scan 横轴模式：'delay_ns' 显示延迟 (ns)，'depth_m' 显示深度 (m)
+cfg.dsp_ascan.xaxis_mode = 'delay_ns';
+% 当 xaxis_mode = 'depth_m' 时，使用 cfg.gpr.soil_velocity_mps 换算深度
+
 % 每 PRI 采样点数 = 采样率 × PRI
 cfg.dsp_ascan.samples_per_pri = round(meta.fs_hz * meta.pri_s);
 
@@ -545,14 +550,16 @@ end
 
 function assign_dsp_ascan_vars(cfg)
 % 将 DSP A-scan 管线需要的常量写入 base workspace。
-%   dsp_ascan_window   — 501点 Hann 窗向量
-%   dsp_ascan_nfft     — IFFT 点数 (4096)
-%   dsp_background     — 不含目标的背景频响 (501 复数点)
-%   dsp_samples_per_pri— 每 PRI 的采样点数（用于下采样）
+%   dsp_ascan_window     — N 点 Hann 窗向量
+%   dsp_ascan_nfft       — IFFT 点数 (4096)
+%   dsp_ascan_delay_step_ns — 每 bin 对应的时延步长 (ns)
+%   dsp_ascan_xaxis_mode — 横轴模式：'delay_ns' 或 'depth_m'
+%   dsp_samples_per_pri  — 每 PRI 的采样点数（用于下采样）
 
 assignin('base', 'dsp_ascan_window', cfg.dsp_ascan.window);
 assignin('base', 'dsp_ascan_nfft', cfg.dsp_ascan.nfft);
 assignin('base', 'dsp_ascan_delay_step_ns', cfg.dsp_ascan.delay_step_ns);
+assignin('base', 'dsp_ascan_xaxis_mode', cfg.dsp_ascan.xaxis_mode);
 assignin('base', 'dsp_samples_per_pri', cfg.dsp_ascan.samples_per_pri);
 
 % 背景频响（直耦+地表+杂波，不含目标），取自土壤模型的分量
@@ -608,4 +615,65 @@ fprintf('RX_Down_IF_BPF: center = %.3f MHz, half BW = %.3f MHz, passband = %.3f-
 fprintf('IQ demod: LO = %.3f MHz, LPF cutoff = %.3f MHz, order = %d\n', ...
     cfg.iq_demod.lo_hz / 1e6, cfg.iq_demod.lpf_cutoff_hz / 1e6, ...
     cfg.iq_demod.lpf_order);
+end
+
+function configure_ascan_display(cfg)
+%CONFIGURE_ASCAN_DISPLAY  Set ArrayPlot parameters for A-scan display.
+%
+%   Configures the DSP ArrayPlot block in the model (if it exists) to show
+%   the correct x-axis:
+%     - SampleIncrement = dsp_ascan_delay_step_ns (literal numeric value)
+%   - XLabel = 'Delay (ns)' or 'Depth (m)' based on xaxis_mode
+
+model = 'ex18_sfw_top';
+if ~bdIsLoaded(model)
+    return;
+end
+
+% Look for ArrayPlot blocks in the model
+array_plots = find_system(model, 'SearchDepth', 2, 'BlockType', 'ArrayPlot');
+
+if isempty(array_plots)
+    % Model may not be loaded; set variables for manual configuration
+    return;
+end
+
+delay_step_ns = cfg.dsp_ascan.delay_step_ns;
+
+for k = 1:numel(array_plots)
+    full_path = array_plots{k};
+
+    % Set SampleIncrement to the literal numeric value
+    try
+        set_param(full_path, 'SampleIncrement', num2str(delay_step_ns));
+    catch
+    end
+
+    % Set XLabel based on mode
+    switch cfg.dsp_ascan.xaxis_mode
+        case 'depth_m'
+            try
+                set_param(full_path, 'XLabel', 'Depth (m)');
+            catch
+            end
+        otherwise
+            try
+                set_param(full_path, 'XLabel', 'Delay (ns)');
+            catch
+            end
+    end
+
+    % Set YLabel
+    try
+        set_param(full_path, 'YLabel', 'Amplitude');
+    catch
+    end
+
+    % Set Title
+    try
+        set_param(full_path, 'Title', sprintf('A-scan (dR=%.3f m, Ru=%.3f m)', ...
+            cfg.range.res_m, cfg.range.unamb_m));
+    catch
+    end
+end
 end

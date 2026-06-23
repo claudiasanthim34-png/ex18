@@ -223,8 +223,8 @@ function copy_sim_outputs_to_base(sim_out)
 %   主循环的 evalin('base', ...) 可以读取。
 
 % 需要复制的日志变量名列表（对应模型中的 To Workspace 块）
-names = {'rf_main_out_log', 'rf_out_log', 'tap_up_log', ...
-    'rx_down_if_log', 'rx_final_mixed_log', 'rx_antenna_log'};
+    names = {'rf_main_out_log', 'rf_out_log', 'tap_up_log', ...
+        'rx_down_if_log', 'rx_iq_baseband_log', 'rx_antenna_log'};
 
 for k = 1:numel(names)
     try
