@@ -278,16 +278,29 @@ surface_path_m = hypot(cfg.gpr.txrx_spacing_m, 2 * cfg.gpr.antenna_height_m);
 x_tx_m = cfg.gpr.scan_x_m - cfg.gpr.txrx_spacing_m / 2;
 x_rx_m = cfg.gpr.scan_x_m + cfg.gpr.txrx_spacing_m / 2;
 
-% --- 对每个目标计算双程路径和时延 ---
+% --- 对每个目标计算双程路径和时延（含空气程）---
+c0 = 299792458;
 n_targets = numel(cfg.gpr.targets);
 for k = 1:n_targets
     t = cfg.gpr.targets(k);
-    dtx_center_m = hypot(x_tx_m - t.center_x_m, t.depth_m);
-    drx_center_m = hypot(x_rx_m - t.center_x_m, t.depth_m);
-    path_m = max(dtx_center_m - t.radius_m, 0) + ...
-             max(drx_center_m - t.radius_m, 0);
+    % Tx->目标中心的水平距离
+    hx_tx_m = abs(x_tx_m - t.center_x_m);
+    hx_rx_m = abs(x_rx_m - t.center_x_m);
+    % 土壤内斜距：从地表入射点到目标中心（近似直线，折射忽略）
+    soil_tx_m = hypot(hx_tx_m, t.depth_m);
+    soil_rx_m = hypot(hx_rx_m, t.depth_m);
+    % 减去管道半径（近似）
+    soil_tx_m = max(soil_tx_m - t.radius_m, 0);
+    soil_rx_m = max(soil_rx_m - t.radius_m, 0);
+    % 空气程：天线高度往返（垂直近似），双程 = 2 * antenna_height_m
+    air_tx_m = cfg.gpr.antenna_height_m;
+    air_rx_m = cfg.gpr.antenna_height_m;
+    % 总时延 = 空气程/c0 + 土壤程/soil_velocity
+    delay_s = (air_tx_m + air_rx_m) / c0 + ...
+              (soil_tx_m + soil_rx_m) / cfg.gpr.soil_velocity_mps;
+    path_m = air_tx_m + air_rx_m + soil_tx_m + soil_rx_m; % 仅用于记录总几何长度
     cfg.gpr.targets(k).path_m = path_m;
-    cfg.gpr.targets(k).delay_s = path_m / cfg.gpr.soil_velocity_mps;
+    cfg.gpr.targets(k).delay_s = delay_s;
     cfg.gpr.targets(k).delay_samples = delay_samples( ...
         cfg.gpr.targets(k).delay_s, meta.sample_s);
 end
