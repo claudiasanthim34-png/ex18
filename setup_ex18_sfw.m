@@ -357,6 +357,9 @@ cfg.dsp_ascan.window = 0.5 - 0.5 * cos(2 * pi * (0:n_freq - 1).' / max(n_freq - 
 % IFFT 点数（含零填充），与 ex18_make_ascan 默认 NFFT=4096 一致
 cfg.dsp_ascan.nfft = 4096;
 
+% IFFT 每 bin 对应时延步长，单位 ns：dt = 1 / (n_freq * df)
+cfg.dsp_ascan.delay_step_ns = 1 / (n_freq * cfg.freq.df_hz) * 1e9;
+
 % 每 PRI 采样点数 = 采样率 × PRI
 cfg.dsp_ascan.samples_per_pri = round(meta.fs_hz * meta.pri_s);
 
@@ -536,6 +539,7 @@ function assign_dsp_ascan_vars(cfg)
 
 assignin('base', 'dsp_ascan_window', cfg.dsp_ascan.window);
 assignin('base', 'dsp_ascan_nfft', cfg.dsp_ascan.nfft);
+assignin('base', 'dsp_ascan_delay_step_ns', cfg.dsp_ascan.delay_step_ns);
 assignin('base', 'dsp_samples_per_pri', cfg.dsp_ascan.samples_per_pri);
 
 % 背景频响（直耦+地表+杂波，不含目标），取自土壤模型的分量
