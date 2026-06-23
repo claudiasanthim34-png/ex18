@@ -470,20 +470,28 @@ end
 
 fs_hz = 1 / max(diff(iq_spec.time_s(1:min(3, end))), eps);
 n = numel(value);
+if n < 4
+    fprintf('  SKIP IQ: %s has too few samples (%d)\n', iq_spec.variable_name, n);
+    return;
+end
 nfft = 2^nextpow2(min(n, 2^20));
 win = 0.5 - 0.5 * cos(2 * pi * (0:n-1).' / max(n-1, 1));
-spec_fft = fftshift(fft(value .* win, nfft));
+spec_fft = fftshift(fft(value(:) .* win, nfft));
 f_fft = (-nfft/2:nfft/2-1).' * fs_hz / nfft;
-mag_db = 20 * log10(max(abs(spec_fft) / max(abs(spec_fft) + eps), eps));
+mag_raw = abs(spec_fft);
+m = min(nfft, numel(mag_raw));
+mag_raw = mag_raw(1:m);
+mag_db = 20 * log10(max(mag_raw / max(mag_raw + eps), eps));
 
 f_lim = 20e6;
-f_mask = abs(f_fft) <= f_lim;
+f_fft_safe = f_fft(1:m);
+f_mask = abs(f_fft_safe) <= f_lim;
 
 fig = figure('Name', 'IQ Double-Sided Spectrum', ...
     'Visible', opts.Visible, 'Color', 'w', ...
     'Position', [100 100 900 500]);
 
-plot(f_fft(f_mask) / 1e6, mag_db(f_mask), 'b-', 'LineWidth', 1);
+plot(f_fft_safe(f_mask) / 1e6, mag_db(f_mask), 'b-', 'LineWidth', 1);
 grid on;
 xlabel('Frequency (MHz)');
 ylabel('Magnitude (dB)');
