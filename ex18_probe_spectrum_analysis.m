@@ -243,12 +243,28 @@ end
 if ~isempty(time_s)
     time_s = double(time_s(:));
     value = squeeze(double(value));
-    if ~isvector(value)
-        value = value(:, 1);
+    % value may be [N 1 T] (structure with time) or [N T] after squeeze
+    sz = size(value);
+    if ndims(value) >= 3 || (numel(sz) >= 2 && sz(2) > 1)
+        % Multi-frame: take last complete frame (most signal energy)
+        value = value(:, :, end);
+        value = value(:);
+        % Use frame sample count, not time step count
+        if numel(value) > 1
+            n = numel(value);
+            time_s = (0:n-1).' / max(diff(time_s(1:min(2,end))), eps);
+        else
+            n = min(numel(time_s), numel(value));
+            value = value(1:n);
+            time_s = time_s(1:n);
+        end
+    else
+        % Single vector: truncate to match time vector length
+        value = value(:);
+        n = min(numel(time_s), numel(value));
+        time_s = time_s(1:n);
+        value = value(1:n);
     end
-    n = min(numel(time_s), numel(value));
-    time_s = time_s(1:n);
-    value = value(1:n);
 end
 end
 
@@ -304,10 +320,14 @@ else
     % Single-sided FFT
     subplot(3, 1, 2);
     n = numel(value);
+    if n < 4
+        text(0.5, 0.5, 'Signal too short for FFT', 'Units', 'normalized', 'HorizontalAlignment', 'center');
+        axis([0 1 0 1]);
+    else
     nfft = 2^nextpow2(min(n, 2^20));
     win = 0.5 - 0.5 * cos(2 * pi * (0:n-1).' / max(n-1, 1));
     spec_fft = fft(real(value) .* win, nfft);
-    half = nfft/2 + 1;
+    half = floor(nfft/2) + 1;
     f_fft = (0:half-1).' * fs_hz / nfft;
     mag_fft = abs(spec_fft(1:half));
     mag_max = max(mag_fft);
@@ -325,6 +345,7 @@ else
     ylabel('Magnitude (dB)');
     title(sprintf('FFT Spectrum: %s', vname));
     xlim([0 max_f/1e6]);
+    end
 
     subplot(3, 1, 3);
     plot(freq / 1e6, amp, 'g-', 'LineWidth', 0.8);
