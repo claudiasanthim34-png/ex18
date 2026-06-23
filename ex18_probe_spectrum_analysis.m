@@ -326,20 +326,23 @@ else
     else
     nfft = 2^nextpow2(min(n, 2^20));
     win = 0.5 - 0.5 * cos(2 * pi * (0:n-1).' / max(n-1, 1));
-    spec_fft = fft(real(value) .* win, nfft);
+    spec_fft = fft(real(value(:)) .* win, nfft);
     half = floor(nfft/2) + 1;
     f_fft = (0:half-1).' * fs_hz / nfft;
     mag_fft = abs(spec_fft(1:half));
+    m = min(half, numel(mag_fft));
+    mag_fft = mag_fft(1:m);
     mag_max = max(mag_fft);
     if mag_max > 0
-        mag_fft_db = 20 * log10(mag_fft / mag_max);
+        mag_fft_db = 20 * log10(mag_fft / max(mag_fft));
     else
         mag_fft_db = -100 * ones(size(mag_fft));
     end
-    f_mask_fft = f_fft <= max_f;
     mag_safe = mag_fft_db;
     mag_safe(isnan(mag_safe) | isinf(mag_safe)) = -100;
-    plot(f_fft(f_mask_fft) / 1e6, mag_safe(f_mask_fft), 'b-', 'LineWidth', 0.8);
+    f_fft_safe = f_fft(1:m);
+    f_mask_fft = f_fft_safe <= max_f;
+    plot(f_fft_safe(f_mask_fft) / 1e6, mag_safe(f_mask_fft), 'b-', 'LineWidth', 0.8);
     grid on;
     xlabel('Frequency (MHz)');
     ylabel('Magnitude (dB)');
