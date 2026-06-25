@@ -28,14 +28,14 @@ end
 
 meta = ast_meta;
 
-% -- auto-detect step_count if not provided --
-if step_count <= 0 || isempty(step_count)
-    if ~isempty(meta) && meta.step_count > 0
-        step_count = meta.step_count;
-    else
-        step_count = 501;
-    end
-end
+% % -- auto-detect step_count if not provided --
+% if step_count <= 0 || isempty(step_count)
+%     if ~isempty(meta) && meta.step_count > 0
+%         step_count = meta.step_count;
+%     else
+%         step_count = 501;
+%     end
+% end
 
 % -- Extract time and value --
 [time_s, value] = uniform_extract(probe_data);
