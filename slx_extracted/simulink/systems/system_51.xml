@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<System>
+  <P Name="Location">[433, 403, 931, 703]</P>
+  <Block BlockType="Inport" Name="In1" SID="52">
+    <P Name="Position">[35, 145, 65, 165]</P>
+    <P Name="ZOrder">1</P>
+  </Block>
+  <Block BlockType="DiscreteFir" Name="Ex08_Soil_FIR" SID="53">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[190, 118, 385, 192]</P>
+    <P Name="ZOrder">3</P>
+    <P Name="InputPortMap">u0</P>
+    <P Name="OutputPortMap">o0</P>
+    <P Name="Coefficients">gpr_soil_fir</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="Outport" Name="Out1" SID="54">
+    <P Name="Position">[525, 145, 555, 165]</P>
+    <P Name="ZOrder">2</P>
+  </Block>
+  <Line>
+    <P Name="ZOrder">1</P>
+    <P Name="Src">52#out:1</P>
+    <P Name="Dst">53#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">2</P>
+    <P Name="Src">53#out:1</P>
+    <P Name="Dst">54#in:1</P>
+  </Line>
+  <Annotation SID="55">
+    <P Name="Name">ex08 土壤模型 FIR：由均匀有损土壤、地表反射、弱杂波和管道目标频响转换得到。</P>
+    <P Name="Position">[0, 0, 375, 15]</P>
+    <P Name="InternalMargins">[0, 0, 0, 0]</P>
+    <P Name="ZOrder">-1</P>
+  </Annotation>
+</System>

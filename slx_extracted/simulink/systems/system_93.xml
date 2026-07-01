@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<System>
+  <P Name="Location">[-1, -7, 1707, 1020]</P>
+  <P Name="ZoomFactor">149</P>
+  <Block BlockType="Inport" Name="In1" SID="94">
+    <P Name="Position">[1645, 178, 1675, 192]</P>
+    <P Name="ZOrder">1558</P>
+  </Block>
+  <Block BlockType="Abs" Name="DSP_Abs" SID="95">
+    <P Name="Position">[2365, 185, 2430, 225]</P>
+    <P Name="ZOrder">1557</P>
+    <P Name="SaturateOnIntegerOverflow">off</P>
+  </Block>
+  <Block BlockType="Sum" Name="DSP_BGS_Subtract" SID="96">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[2160, 185, 2225, 225]</P>
+    <P Name="ZOrder">1554</P>
+    <P Name="IconShape">rectangular</P>
+    <P Name="Inputs">+-</P>
+  </Block>
+  <Block BlockType="Constant" Name="DSP_Background" SID="97">
+    <P Name="Position">[2045, 235, 2125, 275]</P>
+    <P Name="ZOrder">1555</P>
+    <P Name="Value">dsp_background_response</P>
+  </Block>
+  <Block BlockType="Buffer" Name="DSP_Buffer" SID="98">
+    <P Name="Position">[1895, 160, 1965, 210]</P>
+    <P Name="ZOrder">1551</P>
+    <P Name="N">numel(sfw_freq_hz)</P>
+  </Block>
+  <Block BlockType="Reference" Name="DSP_IFFT" SID="99">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[2260, 180, 2330, 230]</P>
+    <P Name="ZOrder">1556</P>
+    <P Name="LibraryVersion">12.0</P>
+    <P Name="SourceBlock">dspxfrm3/IFFT</P>
+    <P Name="SourceType">IFFT</P>
+    <InstanceData>
+      <P Name="MultithreadedSim">auto</P>
+      <P Name="FFTImplementation">Auto</P>
+      <P Name="CompMethod">Table lookup</P>
+      <P Name="TableOpt">NEW</P>
+      <P Name="TableOptActive">Speed</P>
+      <P Name="BitRevOrder">off</P>
+      <P Name="cs_in">off</P>
+      <P Name="Normalize">off</P>
+      <P Name="InheritFFTLength">on</P>
+      <P Name="FFTLength">4096</P>
+      <P Name="WrapInput">on</P>
+      <P Name="mode">Real</P>
+      <P Name="outSamplingMode">Sample based</P>
+      <P Name="roundingMode">Ceiling</P>
+      <P Name="overflowMode">off</P>
+      <P Name="firstCoeffMode">Same word length as input</P>
+      <P Name="firstCoeffWordLength">16</P>
+      <P Name="firstCoeffFracLength">15</P>
+      <P Name="firstCoeffDataTypeStr">Inherit: Same word length as input</P>
+      <P Name="firstCoeffLastDataTypeStr">Inherit: Same word length as input</P>
+      <P Name="prodOutputMode">Inherit via internal rule</P>
+      <P Name="prodOutputWordLength">32</P>
+      <P Name="prodOutputFracLength">30</P>
+      <P Name="prodOutputDataTypeStr">Inherit: Inherit via internal rule</P>
+      <P Name="prodOutputLastDataTypeStr">Inherit: Inherit via internal rule</P>
+      <P Name="accumMode">Inherit via internal rule</P>
+      <P Name="accumWordLength">32</P>
+      <P Name="accumFracLength">30</P>
+      <P Name="accumDataTypeStr">Inherit: Inherit via internal rule</P>
+      <P Name="accumLastDataTypeStr">Inherit: Inherit via internal rule</P>
+      <P Name="outputMode">Inherit via internal rule</P>
+      <P Name="outputWordLength">16</P>
+      <P Name="outputFracLength">15</P>
+      <P Name="outputDataTypeStr">Inherit: Inherit via internal rule</P>
+      <P Name="outputMin">[]</P>
+      <P Name="outputMax">[]</P>
+      <P Name="outputLastDataTypeStr">Inherit: Inherit via internal rule</P>
+      <P Name="LockScale">off</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Product" Name="DSP_Window" SID="100">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[2030, 175, 2095, 215]</P>
+    <P Name="ZOrder">1552</P>
+  </Block>
+  <Block BlockType="Constant" Name="DSP_WindowCoef" SID="101">
+    <P Name="Position">[1890, 235, 1970, 275]</P>
+    <P Name="ZOrder">1553</P>
+    <P Name="Value">dsp_ascan_window</P>
+  </Block>
+  <Block BlockType="ZeroOrderHold" Name="DSP_ZOH" SID="102">
+    <P Name="Position">[1765, 160, 1835, 210]</P>
+    <P Name="ZOrder">1550</P>
+    <P Name="SampleTime">1e-06</P>
+  </Block>
+  <Block BlockType="Outport" Name="Out1" SID="103">
+    <P Name="Position">[2465, 198, 2495, 212]</P>
+    <P Name="ZOrder">1559</P>
+  </Block>
+  <Line>
+    <P Name="ZOrder">1</P>
+    <P Name="Src">99#out:1</P>
+    <P Name="Dst">95#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">2</P>
+    <P Name="Src">94#out:1</P>
+    <P Name="Dst">102#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">3</P>
+    <P Name="Src">100#out:1</P>
+    <P Name="Dst">96#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">4</P>
+    <P Name="Src">102#out:1</P>
+    <P Name="Dst">98#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">5</P>
+    <P Name="Src">98#out:1</P>
+    <P Name="Dst">100#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">6</P>
+    <P Name="Src">97#out:1</P>
+    <P Name="Points">[8, 0; 0, -40]</P>
+    <P Name="Dst">96#in:2</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">7</P>
+    <P Name="Src">96#out:1</P>
+    <P Name="Dst">99#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">8</P>
+    <P Name="Src">101#out:1</P>
+    <P Name="Points">[25, 0; 0, -50]</P>
+    <P Name="Dst">100#in:2</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">9</P>
+    <P Name="Src">95#out:1</P>
+    <P Name="Dst">103#in:1</P>
+  </Line>
+</System>

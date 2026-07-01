@@ -1,715 +1,1310 @@
-function results = ex18_observe_requested_spectra(varargin)
-%EX18_OBSERVE_REQUESTED_SPECTRA 观测 ex18 仓库中指定 RF/SFW 节点的时频图和频谱。
+%% ex18_observe_requested_spectra.m
+% 频谱观测脚本（非侵入式版本）
 %
-% 放置位置：建议把本文件复制到 ex18 仓库根目录，与 setup_ex18_sfw.m、ex18_sfw_top.slx 同级。
+% 功能：运行后固定输出以下 14 张观测图：
+%   01_SFW_Burst_Src输出_时域波形与时频图.png
+%   02_SFW_Burst_Src输出_步进频率信号源频谱.png
+%   03_RF_Out输出_发射天线前频谱.png
+%   04_TX_Radiator输出_发射天线后频谱.png
+%   05_RF_Out与TX_Radiator_发射天线前后频谱对比.png
+%   06_RX_Antenna输出_接收回波原始频谱.png
+%   07_Tap_Mixer_200MHz输出_上变频混频后宽频频谱.png
+%   08_Tap_Up_BPF输出_上变频滤波后上边带频谱.png
+%   09_RX_Down_Mixer输出_下变频混频后宽频频谱.png
+%   10_RX_Down_IF_BPF输出_rx_down_if_log1中频频谱.png
+%   11_IQ混频输出_LPF前双边复频谱.png
+%   12_IQ混频LPF后复基带_rx_iq_baseband_log1频谱.png
+%   13_IQ基带输出_双边复频谱.png
+%   14_IFFT前后_复频响幅频相频曲线.png
 %
-% 默认执行：
-%   1) 自动给关键连线增加 To Workspace 探头，不修改原有信号链；
-%   2) 以 2 GHz 采样率运行一次仿真，便于看见下变频混频后的宽频和频项；
-%   3) 输出 SFW_Burst_Src 时域 + 时频图，以及各关键节点频谱图。
+% 重要原则：
+%   本脚本不会在原始 Simulink 电路上添加、删除或保存任何模块。
+%   脚本会先把模型文件复制到临时目录，随后只在临时模型中添加 To Workspace
+%   探针并运行仿真。仿真结束后关闭临时模型，不保存临时模型。
 %
-% 用法：
-%   results = ex18_observe_requested_spectra;
-%   results = ex18_observe_requested_spectra('StepCount', 80, 'Visible', 'on');
-%   results = ex18_observe_requested_spectra('SampleRate', 1e9, 'MaxFreqMHz', 500);
-%   results = ex18_observe_requested_spectra('RunSimulation', false); % 使用已有 workspace 日志
+% 使用方法：
+%   1. 将本脚本放在 ex18 仓库根目录，或放在模型 .slx/.mdl 所在目录；
+%   2. 在 MATLAB 当前目录切换到脚本所在目录；
+%   3. 运行本脚本；
+%   4. 结果图片保存在 ./spectrum_observation_results_nonintrusive/。
 %
-% 重点输出图：
-%   01_sfw_source_time_frequency.png       SFW_Burst_Src 输出波形和时频图
-%   02_tx_antenna_before_after.png         发射天线前/后的频谱叠图
-%   03_rx_echo_raw_spectrum.png            接收回波原始频谱
-%   04_tap_mixer_raw_wideband.png          上变频混频后的宽频频谱
-%   05_tap_up_bpf_upper_sideband.png       上变频滤波后的上边带频谱
-%   06_rx_down_mixer_raw_wideband.png      下变频混频后的宽频频谱
-%   07_all_requested_spectra_overlay.png   关键频谱叠加总览
-%
-% 说明：
-%   - 本脚本不依赖仓库中原来的 ex18_probe_spectrum_analysis，避免缺少 raw mixer 探头时无法画图。
-%   - 若你的 MATLAB 版本较老，不支持 exportgraphics，脚本会自动退回 saveas。
+% 如果某个节点没有自动找到：
+%   先运行脚本，查看命令行中输出的候选块名称；
+%   然后在下面"用户可调参数"中的 probeList 里补充该节点的真实块名。
 
-opts = local_parse_opts(varargin{:});
+clear; clc; close all;
 
-work_dir = fileparts(mfilename('fullpath'));
-if ~isempty(work_dir)
-    addpath(work_dir);
-    if exist(fullfile(work_dir, 'filterlib'), 'dir') == 7
-        addpath(fullfile(work_dir, 'filterlib'));
-    end
-    if exist(fullfile(work_dir, 'dialogs'), 'dir') == 7
-        addpath(fullfile(work_dir, 'dialogs'));
-    end
+%% ========================= 用户可调参数 =========================
+
+% 是否在运行结束后把生成的 14 张图窗弹出来。
+% true  ：保存 PNG 后保留并弹出 MATLAB 图窗；
+% false ：只保存 PNG，不主动弹出图窗。
+showFiguresAfterSave = true;
+
+% 原始模型名称。留空时，脚本会在当前目录自动寻找 .slx/.mdl。
+% 如果目录里有多个模型，请手动写成如 'ex18.slx' 或 'ex18.mdl'。
+modelFile = '';
+
+% 仿真停止时间。留空时使用模型自身 StopTime。
+% 如果只想快速看频谱，可以写成 '1e-6'、'2e-6' 等。
+overrideStopTime = '';
+
+% 输出图片目录。
+resultDirName = 'spectrum_observation_results_nonintrusive';
+
+% 需要观测的节点配置。
+% name      ：脚本内部使用的节点名；
+% title     ：节点中文说明；
+% match     ：按块名匹配的候选关键词/正则表达式，脚本会从前到后查找；
+% portType  ：'out' 表示取该块输出；'in' 表示取该块输入；
+% portIndex ：端口序号，一般为 1。
+%
+% 下面这些节点对应最终要输出的 14 张图。IFFT 前后共用同一个 IFFT 块：
+%   - ifft_input 取 IFFT 输入端；
+%   - ifft_output 取 IFFT 输出端。
+
+%  定义需要观测的13个节点
+probeList = [
+    struct( ...
+        'name', 'sfw_src', ...
+        'title', 'SFW_Burst_Src 输出', ...
+        'match', {{'^SFW_Burst_Src$', 'SFW[_ ]?Burst[_ ]?Src', 'Burst.*Src', 'SFW'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'rf_out', ...
+        'title', 'RF_Out 输出', ...
+        'match', {{'^RF_Out$', '^RF Out$', 'RF[_ ]?Out', 'RF.*Output'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'tx_radiator', ...
+        'title', 'TX_Radiator 输出', ...
+        'match', {{'^TX_Radiator$', '^TX Radiator$', 'TX[_ ]?Radiator', 'Transmit.*Radiator', 'Radiator'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'rx_antenna', ...
+        'title', 'RX_Antenna 输出', ...
+        'match', {{'^RX_Antenna$', '^RX Antenna$', 'RX[_ ]?Antenna', 'Receive.*Antenna', 'Antenna'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'tap_mixer_200mhz', ...
+        'title', 'Tap_Mixer_200MHz 输出', ...
+        'match', {{'^Tap_Mixer_200MHz$', 'Tap[_ ]?Mixer[_ ]?200MHz', 'Tap.*Mixer.*200', 'Mixer.*200'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'tap_up_bpf', ...
+        'title', 'Tap_Up_BPF 输出', ...
+        'match', {{'^Tap_Up_BPF$', 'Tap[_ ]?Up[_ ]?BPF', 'Up.*BPF', 'BPF'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'rx_down_mixer', ...
+        'title', 'RX_Down_Mixer 输出', ...
+        'match', {{'^RX_Down_Mixer$', 'RX[_ ]?Down[_ ]?Mixer', 'Down.*Mixer', 'RX.*Mixer'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'rx_down_if', ...
+        'title', 'RX_Down_IF_BPF 输出（rx_down_if_log1）', ...
+        'match', {{'^RX_Down_IF_BPF$', '^RX_Down_IF_BPF1$', 'RX[_ ]?Down[_ ]?IF[_ ]?BPF', 'Down.*IF.*BPF', 'IF.*BPF'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'iq_mixer', ...
+        'title', 'IQ 混频输出（LPF 前）', ...
+        'match', {{'^IQ_Complex_Mixer1$', '^IQ_Complex_Mixer$', 'IQ.*Complex.*Mixer', 'IQ.*Mixer', 'IQ.*Mix'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'iq_filtered', ...
+        'title', 'IQ 混频 LPF 后复基带（IQ_Combine1/rx_iq_baseband_log1）', ...
+        'match', {{'^IQ_Combine1$', '^IQ_Combine$', 'IQ[_ ]?Combine', 'Real.*Imag.*Complex', 'RealImagToComplex'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'iq_baseband', ...
+        'title', 'IQ 基带输出', ...
+        'match', {{'^IQ_Combine1$', '^IQ_Combine$', 'IQ[_ ]?Combine', 'Real.*Imag.*Complex', ...
+            '^IQ_Baseband$', '^IQ Baseband$', 'IQ.*Baseband', ...
+            'Complex.*Baseband', 'Baseband'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'ifft_input', ...
+        'title', 'IFFT 前复频响', ...
+        'match', {{'^IFFT$', 'IFFT', 'Inverse.*FFT'}}, ...
+        'portType', 'in', ...
+        'portIndex', 1) ...
+    struct( ...
+        'name', 'ifft_output', ...
+        'title', 'IFFT 后复频响/距离像', ...
+        'match', {{'^IFFT$', 'IFFT', 'Inverse.*FFT'}}, ...
+        'portType', 'out', ...
+        'portIndex', 1) ...
+];
+
+% 频谱图纵轴是否归一化到最大值 0 dB。
+normalizeSpectrumToPeak = true;
+
+% 是否使用窗函数。脉冲/突发信号本身会带来谱展宽，使用 Hann 窗可降低旁瓣。
+useHannWindow = true;
+
+%% ========================= 脚本主体 =========================
+
+scriptDir = fileparts(mfilename('fullpath'));
+if isempty(scriptDir)
+    scriptDir = pwd;
 end
 
-if exist(opts.OutputDir, 'dir') ~= 7
-    mkdir(opts.OutputDir);
-end
-
-if opts.RunSimulation
-    local_prepare_model_and_run(opts);
+if isempty(modelFile)
+    modelFile = autoFindModelFile(scriptDir);
 else
-    if evalin('base', 'exist(''cfg'', ''var'')') == 0
-        setup_ex18_sfw('SampleRate', opts.SampleRate);
-    end
+    modelFile = fullfile(scriptDir, modelFile);
 end
 
-if evalin('base', 'exist(''cfg'', ''var'')') == 0
-    error('base workspace 中没有 cfg。请先运行 setup_ex18_sfw 或设置 RunSimulation=true。');
+if ~isfile(modelFile)
+    error('没有找到模型文件：%s', modelFile);
 end
-cfg = evalin('base', 'cfg');
 
-% -------- 读取并绘图 --------
-defs = local_requested_defs();
-records = repmat(struct('Name', '', 'Variable', '', 'Kind', '', 'Time', [], ...
-    'Value', [], 'FreqHz', [], 'MagDb', [], 'Figure', ''), 0, 1);
+[modelDir, modelBase, modelExt] = fileparts(modelFile);
+resultDir = fullfile(modelDir, resultDirName);
+if ~exist(resultDir, 'dir')
+    mkdir(resultDir);
+end
 
-fprintf('\nex18 requested observation started. OutputDir = %s\n', opts.OutputDir);
+fprintf('\n=== ex18 频谱观测（非侵入式版本）===\n');
+fprintf('原始模型：%s\n', modelFile);
+fprintf('结果目录：%s\n', resultDir);
 
-for k = 1:numel(defs)
-    def = defs(k);
-    [var_name, ok] = local_first_existing(def.Candidates);
-    if ~ok
-        warning('跳过：%s。没有找到候选变量：%s', def.Name, strjoin(def.Candidates, ', '));
+% 把原模型复制到临时目录。后续所有探针都加在临时模型里。
+% 如果原模型已经在 MATLAB 中打开，为了避免同名模型冲突，临时模型会换一个名称。
+tempRoot = tempname;
+mkdir(tempRoot);
+cleanupObj = onCleanup(@()cleanupTempModel(tempRoot));
+
+originalLoaded = bdIsLoaded(modelBase);
+if originalLoaded
+    tempModelBase = [modelBase '_spectrum_tmp_' datestr(now, 'yyyymmdd_HHMMSS')];
+    fprintf('检测到原模型已打开：临时模型将使用新名称 %s。\n', tempModelBase);
+else
+    tempModelBase = modelBase;
+end
+
+tempModelFile = fullfile(tempRoot, [tempModelBase modelExt]);
+copyfile(modelFile, tempModelFile);
+
+% 保留原仓库目录在路径中，避免模型初始化脚本、MAT 文件或自定义函数找不到。
+oldPath = path;
+pathCleanupObj = onCleanup(@()path(oldPath));
+addpath(modelDir);
+addpath(tempRoot);
+
+tmpModel = tempModelBase;
+load_system(tempModelFile);
+modelCleanupObj = onCleanup(@()closeTempModel(tmpModel));
+
+% 让 To Workspace 的数据返回到 simOut 中，避免污染 base workspace。
+trySetModelParam(tmpModel, 'ReturnWorkspaceOutputs', 'on');
+trySetModelParam(tmpModel, 'SignalLogging', 'on');
+
+if ~isempty(overrideStopTime)
+    trySetModelParam(tmpModel, 'StopTime', overrideStopTime);
+end
+
+% 在临时模型中挂接探针。
+attached = struct('name', {}, 'title', {}, 'varName', {}, ...
+    'portType', {}, 'blockPath', {});
+
+fprintf('\n--- 正在寻找并挂接观测节点 ---\n');
+for k = 1:numel(probeList)
+    probe = probeList(k);
+    blockPath = findBlockByName(tmpModel, probe.match);
+
+    if isempty(blockPath)
+        fprintf('[跳过] %s：没有找到匹配块。\n', probe.title);
+        printUsefulCandidates(tmpModel, probe.name);
         continue;
     end
 
-    [t, x] = local_read_workspace_signal(var_name, cfg.time.fs_hz);
-    if isempty(t) || isempty(x)
-        warning('跳过：%s。变量 %s 为空或格式无法识别。', def.Name, var_name);
-        continue;
-    end
-
-    rec = struct();
-    rec.Name = def.Name;
-    rec.Variable = var_name;
-    rec.Kind = def.Kind;
-    rec.Time = t;
-    rec.Value = x;
-
-    if strcmp(def.Kind, 'source')
-        rec.Figure = local_plot_source_time_frequency(def, var_name, t, x, cfg, opts);
-        [rec.FreqHz, rec.MagDb] = local_fft_spectrum(t, x, opts, false);
-    else
-        [rec.FreqHz, rec.MagDb] = local_fft_spectrum(t, x, opts, false);
-        rec.Figure = local_plot_single_spectrum(def, var_name, rec.FreqHz, rec.MagDb, cfg, opts);
-    end
-
-    records(end + 1, 1) = rec; %#ok<AGROW>
-    fprintf('  OK %-34s <- %s\n', def.Name, var_name);
-end
-
-% -------- 发射天线前/后叠图 --------
-fig_tx = local_plot_pair_overlay(records, ...
-    {'发射天线前：RF_Out', '发射天线后：TX_Radiator'}, ...
-    '发射天线前后频谱对比', '02_tx_antenna_before_after', cfg, opts);
-
-% -------- 全部频谱叠加总览 --------
-fig_all = local_plot_all_overlay(records, cfg, opts);
-
-results = struct();
-results.OutputDir = opts.OutputDir;
-results.Options = opts;
-results.Records = records;
-results.Figures = unique([{records.Figure}, {fig_tx}, {fig_all}]);
-results.Cfg = cfg;
-
-save(fullfile(opts.OutputDir, 'ex18_requested_spectra_results.mat'), 'results', '-v7.3');
-fprintf('Done. 已保存图片和 results.mat 到：%s\n\n', opts.OutputDir);
-
-end
-
-% ========================================================================
-% 运行仿真并添加探头
-% ========================================================================
-function local_prepare_model_and_run(opts)
-model = 'ex18_sfw_top';
-
-if exist([model '.slx'], 'file') ~= 2
-    if exist('build_ex18_sfw_top', 'file') == 2
-        build_ex18_sfw_top();
-    else
-        error('找不到 %s.slx，也找不到 build_ex18_sfw_top.m。请在 ex18 仓库根目录运行。', model);
-    end
-end
-
-load_system(model);
-local_add_requested_probes(model);
-
-init_cmd = local_make_init_cmd(opts);
-set_param(model, 'InitFcn', init_cmd);
-set_param(model, 'StopTime', 'sfw_stop_s', 'FixedStep', 'sfw_sample_s');
-
-fprintf('Running %s ... SampleRate = %.3g Hz', model, opts.SampleRate);
-if ~isempty(opts.StepCount)
-    fprintf(', StepCount = %d', opts.StepCount);
-end
-fprintf('\n');
-
-sim(model);
-end
-
-function init_cmd = local_make_init_cmd(opts)
-args = sprintf('''SampleRate'', %.17g', opts.SampleRate);
-if ~isempty(opts.StepCount)
-    args = sprintf('%s, ''StepCount'', %d', args, opts.StepCount);
-end
-init_cmd = [ ...
-    'model_dir = fileparts(get_param(bdroot, ''FileName''));' ...
-    'if ~isempty(model_dir), addpath(model_dir); ' ...
-    'addpath(fullfile(model_dir, ''filterlib'')); ' ...
-    'addpath(fullfile(model_dir, ''dialogs'')); end;' ...
-    sprintf('setup_ex18_sfw(%s);', args) ...
-    ];
-end
-
-function local_add_requested_probes(model)
-% 这些探头都是 Simulink 域输出端，直接从对应模块输出端分支到 To Workspace。
-probes = {
-    'SFW_Burst_Src/1',     'Probe_REQ_SFW_Source',      'probe_req_sfw_src',            [260 235 410 265];
-    'RF_Out/1',            'Probe_REQ_TX_Before_Ant',   'probe_req_tx_before_ant',     [1200 5 1370 35];
-    'TX_Radiator/1',       'Probe_REQ_TX_After_Ant',    'probe_req_tx_after_ant',      [1410 85 1580 115];
-    'RX_Antenna/1',        'Probe_REQ_RX_Echo_Raw',     'probe_req_rx_echo_raw',       [1635 230 1805 260];
-    'Tap_Mixer_200MHz/1',  'Probe_REQ_Tap_Mixer_Raw',   'probe_req_tap_mixer_raw',     [1270 305 1440 335];
-    'Tap_Up_BPF/1',        'Probe_REQ_Tap_Up_BPF',      'probe_req_tap_up_bpf',        [1510 300 1680 330];
-    'RX_Down_Mixer/1',     'Probe_REQ_RX_Down_Mixer',   'probe_req_rx_down_mixer_raw', [1885 30 2070 60];
-    };
-
-for i = 1:size(probes, 1)
-    src = probes{i, 1};
-    block_name = probes{i, 2};
-    var_name = probes{i, 3};
-    pos = probes{i, 4};
-    dst = [model '/' block_name];
-
-    old = find_system(model, 'SearchDepth', 1, 'Name', block_name);
-    if ~isempty(old)
-        try delete_block(dst); catch, end %#ok<CTCH>
-    end
-
-    add_block('simulink/Sinks/To Workspace', dst, ...
-        'VariableName', var_name, ...
-        'SaveFormat', 'Structure With Time', ...
-        'Position', pos);
-
+    % To Workspace 探针变量名使用 obs_ 前缀，避免和模型中已有的
+    % probe_iq_baseband 等观测节点重名。
+    varName = ['obs_' probe.name];
     try
-        add_line(model, src, [block_name '/1'], 'autorouting', 'on');
+        attachToWorkspaceProbe(tmpModel, blockPath, probe.portType, ...
+            probe.portIndex, varName);
+        attached(end + 1) = struct( ...
+            'name', probe.name, ...
+            'title', probe.title, ...
+            'varName', varName, ...
+            'portType', probe.portType, ...
+            'blockPath', blockPath); %#ok<SAGROW>
+        fprintf('[完成] %-12s -> %s (%s%d)\n', ...
+            probe.name, blockPath, probe.portType, probe.portIndex);
     catch ME
-        warning('探头连线失败：%s -> %s。原因：%s', src, block_name, ME.message);
+        fprintf('[跳过] %s：探针挂接失败：%s\n', probe.title, ME.message);
     end
 end
-end
 
-% ========================================================================
-% 待观测节点定义
-% ========================================================================
-function defs = local_requested_defs()
-defs = repmat(struct('Name', '', 'Candidates', {{}}, 'Kind', '', 'FileName', '', 'Expected', ''), 0, 1);
-
-defs(end+1) = struct( ...
-    'Name', 'SFW_Burst_Src 输出', ...
-    'Candidates', {{'probe_req_sfw_src', 'probe_sfw_src', 'sfw_src_ts'}}, ...
-    'Kind', 'source', ...
-    'FileName', '01_sfw_source_time_frequency', ...
-    'Expected', '步进频率 burst：频率随 PRI 逐步增加');
-
-defs(end+1) = struct( ...
-    'Name', '发射天线前：RF_Out', ...
-    'Candidates', {{'probe_req_tx_before_ant', 'probe_after_pa', 'rf_main_out_log'}}, ...
-    'Kind', 'spectrum', ...
-    'FileName', '02a_tx_before_antenna_spectrum', ...
-    'Expected', '主路 RF 输出，频谱应落在原始 SFW 频带');
-
-defs(end+1) = struct( ...
-    'Name', '发射天线后：TX_Radiator', ...
-    'Candidates', {{'probe_req_tx_after_ant', 'probe_tx_radiated', 'rf_out_log'}}, ...
-    'Kind', 'spectrum', ...
-    'FileName', '02b_tx_after_antenna_spectrum', ...
-    'Expected', '经发射天线后的辐射信号，频带位置应基本不变，幅度可能变化');
-
-defs(end+1) = struct( ...
-    'Name', '接收回波原始频谱', ...
-    'Candidates', {{'probe_req_rx_echo_raw', 'probe_rx_antenna_raw', 'rx_antenna_log'}}, ...
-    'Kind', 'spectrum', ...
-    'FileName', '03_rx_echo_raw_spectrum', ...
-    'Expected', 'RX_Antenna 原始输出，包含直耦、地表、杂波和目标回波');
-
-defs(end+1) = struct( ...
-    'Name', '上变频混频后宽频频谱', ...
-    'Candidates', {{'probe_req_tap_mixer_raw', 'probe_tap_mixer_raw'}}, ...
-    'Kind', 'spectrum', ...
-    'FileName', '04_tap_mixer_raw_wideband', ...
-    'Expected', 'Tap_Mixer_200MHz 后，理论上同时出现 LO+f 和 |LO-f| 成分');
-
-defs(end+1) = struct( ...
-    'Name', '上变频滤波后上边带频谱', ...
-    'Candidates', {{'probe_req_tap_up_bpf', 'probe_tap_up_bpf', 'tap_up_log'}}, ...
-    'Kind', 'spectrum', ...
-    'FileName', '05_tap_up_bpf_upper_sideband', ...
-    'Expected', 'Tap_Up_BPF 后主要保留 LO+f 上边带');
-
-defs(end+1) = struct( ...
-    'Name', '下变频混频后宽频频谱', ...
-    'Candidates', {{'probe_req_rx_down_mixer_raw', 'probe_rx_down_mixer_raw'}}, ...
-    'Kind', 'spectrum', ...
-    'FileName', '06_rx_down_mixer_raw_wideband', ...
-    'Expected', 'RX_Down_Mixer 后同时含约 200 MHz 差频 IF 和更高频和频项');
-end
-
-function [var_name, ok] = local_first_existing(candidates)
-var_name = '';
-ok = false;
-for i = 1:numel(candidates)
-    v = candidates{i};
-    if evalin('base', sprintf('exist(''%s'', ''var'')', v))
-        var_name = v;
-        ok = true;
-        return;
+missingProbeNames = setdiff({probeList.name}, {attached.name}, 'stable');
+optionalFallbackProbeNames = {'iq_baseband'};
+missingCriticalProbeNames = setdiff(missingProbeNames, optionalFallbackProbeNames, 'stable');
+if ~isempty(missingCriticalProbeNames)
+    fprintf('\n以下必需观测节点没有成功挂接：\n');
+    for i = 1:numel(missingCriticalProbeNames)
+        fprintf('  %s\n', missingCriticalProbeNames{i});
     end
+    error(['没有成功挂接全部必需节点。请根据上方候选块名称，' ...
+        '修改脚本开头 probeList 中对应节点的 match 字段。']);
 end
-end
-
-% ========================================================================
-% 工作区信号读取
-% ========================================================================
-function [t, x] = local_read_workspace_signal(var_name, fs_hint)
-raw = evalin('base', var_name);
-[t, x] = local_extract_signal(raw, fs_hint);
+if ismember('iq_baseband', missingProbeNames)
+    fprintf(['\n[提示] 没有找到独立的 IQ 基带输出节点，' ...
+        '后续将使用 IFFT 输入端信号生成第 13 张 IQ 基带频谱图。\n']);
 end
 
-function [t, x] = local_extract_signal(raw, fs_hint)
-t = [];
-x = [];
-
-if isa(raw, 'timeseries')
-    t = raw.Time;
-    x = raw.Data;
-elseif isstruct(raw) && isfield(raw, 'time') && isfield(raw, 'signals')
-    t = raw.time;
-    if isstruct(raw.signals) && isfield(raw.signals, 'values')
-        x = raw.signals.values;
+% 运行临时模型仿真。注意：运行的是临时模型，不是原模型。
+fprintf('\n--- 正在运行临时模型仿真 ---\n');
+try
+    simIn = Simulink.SimulationInput(tmpModel);
+    if ~isempty(overrideStopTime)
+        simIn = simIn.setModelParameter('StopTime', overrideStopTime);
+    end
+    simOut = sim(simIn);
+catch
+    % 旧版 MATLAB 若不支持 SimulationInput，则退回普通 sim 调用。
+    if ~isempty(overrideStopTime)
+        simOut = sim(tmpModel, 'StopTime', overrideStopTime);
     else
-        x = raw.signals;
+        simOut = sim(tmpModel);
     end
-elseif isa(raw, 'Simulink.SimulationData.Dataset')
-    if raw.numElements < 1
-        return;
-    end
-    [t, x] = local_extract_signal(raw{1}.Values, fs_hint);
-    return;
-elseif isa(raw, 'Simulink.SimulationData.Signal')
-    [t, x] = local_extract_signal(raw.Values, fs_hint);
-    return;
-elseif isnumeric(raw)
-    x = raw;
-    n = numel(x);
-    t = (0:n-1).' / fs_hint;
+end
+fprintf('仿真完成。\n');
+
+% 读取探针数据并按固定清单出图。
+fprintf('\n--- 正在生成指定的 12 张频谱观测图片 ---\n');
+oldDefaultFigureVisible = get(0, 'DefaultFigureVisible');
+if showFiguresAfterSave
+    set(0, 'DefaultFigureVisible', 'on');
 else
-    return;
+    set(0, 'DefaultFigureVisible', 'off');
+end
+figureVisibleCleanup = onCleanup(@()set(0, 'DefaultFigureVisible', oldDefaultFigureVisible));
+
+signals = collectProbeSignals(simOut, attached);
+if ~isfield(signals, 'iq_baseband')
+    signals.iq_baseband = signals.ifft_input;
+end
+savedFiles = {};
+
+fig = figure('Color', 'w', 'Name', 'SFW_Burst_Src输出_时域波形与时频图');
+plotTimeAndSpectrogram(signals.sfw_src.x, signals.sfw_src.t, ...
+    'SFW_Burst_Src 输出：时域波形与时频图');
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '01_SFW_Burst_Src输出_时域波形与时频图.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'SFW_Burst_Src输出_步进频率信号源频谱');
+plotDoubleSidedSpectrum(signals.sfw_src.x, signals.sfw_src.t, ...
+    'SFW_Burst_Src 输出：步进频率信号源频谱', ...
+    normalizeSpectrumToPeak, useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '02_SFW_Burst_Src输出_步进频率信号源频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'RF_Out输出_发射天线前频谱');
+% %plotDoubleSidedSpectrum(signals.rf_out.x, signals.rf_out.t, ...
+%     'RF_Out 输出：发射天线前频谱', ...
+%     normalizeSpectrumToPeak, useHannWindow);
+% plotLinearSpectrum(signals.rf_out.x, signals.rf_out.t, ...
+%     'RF_Out 输出：发射天线前频谱', ...
+%      useHannWindow);
+plotAbsoluteDbSpectrum(signals.rf_out.x, signals.rf_out.t, ...
+    'RF_Out 输出：发射天线前频谱', ...
+    useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '03_RF_Out输出_发射天线前频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'TX_Radiator输出_发射天线后频谱');
+% plotDoubleSidedSpectrum(signals.tx_radiator.x, signals.tx_radiator.t, ...
+%     'TX_Radiator 输出：发射天线后频谱', ...
+%     normalizeSpectrumToPeak, useHannWindow);
+% plotLinearSpectrum(signals.rf_out.x, signals.rf_out.t, ...
+%     'TX_Radiator 输出：发射天线后频谱', ...
+%      useHannWindow);
+plotAbsoluteDbSpectrum(signals.rf_out.x, signals.rf_out.t, ...
+    'TX_Radiator 输出：发射天线后频谱', ...
+    useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '04_TX_Radiator输出_发射天线后频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'RF_Out与TX_Radiator_发射天线前后频谱对比');
+% plotSpectrumCompare(signals.rf_out.x, signals.rf_out.t, 'RF_Out 天线前', ...
+%     signals.tx_radiator.x, signals.tx_radiator.t, 'TX_Radiator 天线后', ...
+%     'RF_Out 与 TX_Radiator：发射天线前后频谱对比', ...
+%     normalizeSpectrumToPeak, useHannWindow);
+plotAbsoluteDbSpectrumCompare(signals.rf_out.x, signals.rf_out.t, 'RF_Out 天线前', ...
+    signals.tx_radiator.x, signals.tx_radiator.t, 'TX_Radiator 天线后', ...
+    'RF_Out 与 TX_Radiator：发射天线前后频谱对比', ...
+     useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '05_RF_Out与TX_Radiator_发射天线前后频谱对比.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'RX_Antenna输出_接收回波原始频谱');
+plotDoubleSidedSpectrum(signals.rx_antenna.x, signals.rx_antenna.t, ...
+    'RX_Antenna 输出：接收回波原始频谱', ...
+    normalizeSpectrumToPeak, useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '06_RX_Antenna输出_接收回波原始频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'Tap_Mixer_200MHz输出_上变频混频后宽频频谱');
+plotDoubleSidedSpectrum(signals.tap_mixer_200mhz.x, signals.tap_mixer_200mhz.t, ...
+    'Tap_Mixer_200MHz 输出：上变频混频后宽频频谱', ...
+    normalizeSpectrumToPeak, useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '07_Tap_Mixer_200MHz输出_上变频混频后宽频频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'Tap_Up_BPF输出_上变频滤波后上边带频谱');
+% plotDoubleSidedSpectrum(signals.tap_up_bpf.x, signals.tap_up_bpf.t, ...
+%     'Tap_Up_BPF 输出：上变频滤波后上边带频谱', ...
+%     normalizeSpectrumToPeak, useHannWindow);
+plotAbsoluteDbSpectrum(signals.tap_up_bpf.x, signals.tap_up_bpf.t, ...
+    'Tap_Up_BPF 输出：上变频滤波后上边带频谱', ...
+     useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '08_Tap_Up_BPF输出_上变频滤波后上边带频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'RX_Down_Mixer输出_下变频混频后宽频频谱');
+plotDoubleSidedSpectrum(signals.rx_down_mixer.x, signals.rx_down_mixer.t, ...
+    'RX_Down_Mixer 输出：下变频混频后宽频频谱', ...
+    normalizeSpectrumToPeak, useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '09_RX_Down_Mixer输出_下变频混频后宽频频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'RX_Down_IF_BPF输出_rx_down_if_log1中频频谱');
+plotDoubleSidedSpectrum(signals.rx_down_if.x, signals.rx_down_if.t, ...
+    'RX_Down_IF_BPF 输出：rx\_down\_if\_log1 中频频谱', ...
+    normalizeSpectrumToPeak, useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '10_RX_Down_IF_BPF输出_rx_down_if_log1中频频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'IQ混频输出_LPF前双边复频谱');
+plotDoubleSidedSpectrum(signals.iq_mixer.x, signals.iq_mixer.t, ...
+    'IQ 混频输出（LPF 前）：双边复频谱', ...
+    normalizeSpectrumToPeak, useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '11_IQ混频输出_LPF前双边复频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'IQ混频LPF后复基带_rx_iq_baseband_log1频谱');
+plotDoubleSidedSpectrum(signals.iq_filtered.x, signals.iq_filtered.t, ...
+    'IQ 混频 LPF 后复基带（rx\_iq\_baseband\_log1）：双边复频谱', ...
+    normalizeSpectrumToPeak, useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '12_IQ混频LPF后复基带_rx_iq_baseband_log1频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'IQ基带输出_双边复频谱');
+plotDoubleSidedSpectrum(signals.iq_baseband.x, signals.iq_baseband.t, ...
+    'IQ 基带输出：双边复频谱', ...
+    normalizeSpectrumToPeak, useHannWindow);
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '13_IQ基带输出_双边复频谱.png'); %#ok<SAGROW>
+
+fig = figure('Color', 'w', 'Name', 'IFFT前后_复频响幅频相频曲线');
+plotIfftBeforeAfter(signals.ifft_input.x, signals.ifft_output.x, ...
+    'IFFT 前后：复频响幅频/相频曲线');
+savedFiles{end + 1} = saveNamedFigure(fig, resultDir, ...
+    '14_IFFT前后_复频响幅频相频曲线.png'); %#ok<SAGROW>
+
+for i = 1:numel(savedFiles)
+    fprintf('[保存] %s\n', savedFiles{i});
 end
 
-if isempty(x)
+if showFiguresAfterSave
+    bringGeneratedFiguresToFront();
+end
+
+cleanupBaseProbeVars({attached.varName});
+
+fprintf('\n=== 完成 ===\n');
+fprintf('本次脚本只修改并仿真临时模型，原始模型不会被保存或改线。\n');
+fprintf('已生成图片数量：%d\n', numel(savedFiles));
+
+%% ========================= 局部函数 =========================
+
+function modelFile = autoFindModelFile(folderPath)
+% 在当前目录自动寻找模型文件。
+% 选择顺序：
+%   1. 优先选择明确的 ex18.slx/ex18.mdl；
+%   2. 如果当前已经打开了某个 Simulink 模型，优先使用这个打开的模型；
+%   3. 如果只有一个模型文件，直接使用它；
+%   4. 如果有多个模型文件，逐个只读加载并按关键节点打分，选择最像主电路的模型。
+    preferred = {fullfile(folderPath, 'ex18.slx'), fullfile(folderPath, 'ex18.mdl')};
+    for i = 1:numel(preferred)
+        if isfile(preferred{i})
+            modelFile = preferred{i};
+            return;
+        end
+    end
+
+    slxFiles = dir(fullfile(folderPath, '*.slx'));
+    mdlFiles = dir(fullfile(folderPath, '*.mdl'));
+    allFiles = [slxFiles; mdlFiles];
+
+    % 忽略临时模型文件，避免上一次异常退出留下的临时副本干扰判断。
+    keep = true(size(allFiles));
+    for i = 1:numel(allFiles)
+        [~, candidateBase] = fileparts(allFiles(i).name);
+        keep(i) = isempty(regexpi(candidateBase, 'spectrum_tmp|tmp|backup|bak', 'once'));
+    end
+    allFiles = allFiles(keep);
+
+    if isempty(allFiles)
+        error('当前目录没有找到 .slx 或 .mdl 模型文件。');
+    elseif numel(allFiles) == 1
+        modelFile = fullfile(folderPath, allFiles(1).name);
+        return;
+    end
+
+    openedModelFile = getCurrentOpenedModelFile(folderPath);
+    if ~isempty(openedModelFile)
+        fprintf('检测到当前打开的模型，自动选择：%s\n', openedModelFile);
+        modelFile = openedModelFile;
+        return;
+    end
+
+    fprintf('当前目录找到多个模型文件，正在自动判断主模型：\n');
+    scores = zeros(numel(allFiles), 1);
+    for i = 1:numel(allFiles)
+        candidate = fullfile(folderPath, allFiles(i).name);
+        scores(i) = scoreCandidateModel(candidate);
+        fprintf('  %-40s  score = %.1f\n', allFiles(i).name, scores(i));
+    end
+
+    [bestScore, bestIdx] = max(scores);
+    if bestScore <= 0
+        fprintf('\n没有识别出明显主模型。请把脚本开头改成类似：\n');
+        fprintf('  modelFile = ''你的主模型.slx'';\n\n');
+        error('多个模型文件无法自动判断。');
+    end
+
+    modelFile = fullfile(folderPath, allFiles(bestIdx).name);
+    fprintf('自动选择主模型：%s\n', modelFile);
+end
+
+function openedModelFile = getCurrentOpenedModelFile(folderPath)
+% 如果用户已经打开了一个模型窗口，则优先使用该模型。
+% 这样最符合"我正在看/正在运行的这个电路"的使用习惯。
+    openedModelFile = '';
+    try
+        currentRoot = bdroot(gcs);
+        if ~isempty(currentRoot) && bdIsLoaded(currentRoot)
+            fileName = get_param(currentRoot, 'FileName');
+            if isfile(fileName) && strcmpi(fileparts(fileName), folderPath)
+                openedModelFile = fileName;
+                return;
+            end
+        end
+    catch
+    end
+
+    try
+        loaded = find_system('Type', 'block_diagram');
+        for i = 1:numel(loaded)
+            fileName = get_param(loaded{i}, 'FileName');
+            if isfile(fileName) && strcmpi(fileparts(fileName), folderPath)
+                openedModelFile = fileName;
+                return;
+            end
+        end
+    catch
+    end
+end
+
+function score = scoreCandidateModel(candidateFile)
+% 给候选模型打分。只加载和读取块名，不保存、不改线。
+% 分数越高，说明该模型越可能是包含 SFW/IQ/IFFT 主链路的顶层电路。
+    score = 0;
+    [~, modelBase] = fileparts(candidateFile);
+
+    nameRules = { ...
+        'ex18', 20; ...
+        'main|top|system', 8; ...
+        'radar|sfw|burst|iq|ifft', 6; ...
+        'test|library|lib|sub|backup|bak', -10};
+    for i = 1:size(nameRules, 1)
+        if ~isempty(regexpi(modelBase, nameRules{i, 1}, 'once'))
+            score = score + nameRules{i, 2};
+        end
+    end
+
+    wasLoaded = bdIsLoaded(modelBase);
+    try
+        load_system(candidateFile);
+        allBlocks = find_system(modelBase, ...
+            'LookUnderMasks', 'all', ...
+            'FollowLinks', 'on', ...
+            'Type', 'Block');
+        names = get_param(allBlocks, 'Name');
+        if ischar(names)
+            names = {names};
+        end
+
+        keyRules = { ...
+            '^SFW_Burst_Src$', 50; ...
+            'SFW.*Burst.*Src|Burst.*Src', 35; ...
+            '^RF_Out$|RF[_ ]?Out', 20; ...
+            '^TX_Radiator$|TX[_ ]?Radiator', 20; ...
+            '^RX_Antenna$|RX[_ ]?Antenna', 20; ...
+            '^Tap_Mixer_200MHz$|Tap.*Mixer.*200', 18; ...
+            '^Tap_Up_BPF$|Tap.*Up.*BPF|Up.*BPF', 18; ...
+            '^RX_Down_Mixer$|RX.*Down.*Mixer|Down.*Mixer', 18; ...
+            'IQ.*Mixer|IQ.*Mix|Mixer|Mix', 15; ...
+            'IQ.*Baseband|Baseband|LPF|Low.*Pass', 15; ...
+            '^IFFT$|Inverse.*FFT', 25; ...
+            'FFT', 8};
+
+        for r = 1:size(keyRules, 1)
+            for n = 1:numel(names)
+                if ~isempty(regexpi(names{n}, keyRules{r, 1}, 'once'))
+                    score = score + keyRules{r, 2};
+                    break;
+                end
+            end
+        end
+
+        % 顶层块较多的模型通常比纯子系统/库文件更像主模型。
+        topBlocks = find_system(modelBase, 'SearchDepth', 1, 'Type', 'Block');
+        score = score + min(numel(topBlocks), 20) * 0.2;
+    catch
+        score = score - 100;
+    end
+
+    if ~wasLoaded && bdIsLoaded(modelBase)
+        close_system(modelBase, 0);
+    end
+end
+
+function trySetModelParam(modelName, paramName, paramValue)
+% 某些参数在不同 MATLAB/Simulink 版本中可能不存在，因此用安全设置。
+    try
+        set_param(modelName, paramName, paramValue);
+    catch
+        % 参数不可用时不影响主要功能。
+    end
+end
+
+% 智能识别节点
+function blockPath = findBlockByName(modelName, patterns)
+% 按给定关键词/正则表达式寻找块名。
+% 返回第一个最可信的候选块路径。
+    blockPath = '';
+    allBlocks = find_system(modelName, ...
+        'LookUnderMasks', 'all', ...
+        'FollowLinks', 'on', ...
+        'Type', 'Block');
+
+    names = get_param(allBlocks, 'Name');
+    if ischar(names)
+        names = {names};
+    end
+
+    for p = 1:numel(patterns)
+        pat = patterns{p};
+
+        exactHit = strcmpi(names, pat);
+        if any(exactHit)
+            blockPath = allBlocks{find(exactHit, 1, 'first')};
+            return;
+        end
+
+        regHit = false(size(names));
+        for i = 1:numel(names)
+            regHit(i) = ~isempty(regexpi(names{i}, pat, 'once'));
+        end
+        if any(regHit)
+            blockPath = allBlocks{find(regHit, 1, 'first')};
+            return;
+        end
+    end
+end
+
+function printUsefulCandidates(modelName, probeName)
+% 自动匹配失败时，打印一些可能有用的块名，方便用户回填 probeList。
+    keywords = {'SFW', 'Burst', 'IQ', 'Mixer', 'Mix', 'Baseband', ...
+        'LPF', 'Low', 'Pass', 'FFT', 'IFFT', 'Range', 'RF', ...
+        'TX', 'Radiator', 'RX', 'Antenna', 'Tap', 'BPF', 'Down', 'Up'};
+    allBlocks = find_system(modelName, ...
+        'LookUnderMasks', 'all', ...
+        'FollowLinks', 'on', ...
+        'Type', 'Block');
+    names = get_param(allBlocks, 'Name');
+    if ischar(names)
+        names = {names};
+    end
+
+    hit = false(size(names));
+    for k = 1:numel(keywords)
+        for i = 1:numel(names)
+            hit(i) = hit(i) || ~isempty(regexpi(names{i}, keywords{k}, 'once'));
+        end
+    end
+
+    idx = find(hit);
+    if isempty(idx)
+        return;
+    end
+
+    fprintf('  可参考的候选块名（用于 %s）：\n', probeName);
+    for i = 1:min(numel(idx), 30)
+        fprintf('    %s\n', allBlocks{idx(i)});
+    end
+end
+
+function attachToWorkspaceProbe(modelName, blockPath, portType, portIndex, varName)
+% 在临时模型中给指定端口增加一个 To Workspace 探针。
+% 这里的 add_block/add_line 只作用于临时模型，不会碰原始电路。
+    parentSystem = get_param(blockPath, 'Parent');
+    probeBlock = [parentSystem '/' varName];
+
+    if bdIsLoaded(modelName) && ~isempty(find_system(parentSystem, ...
+            'SearchDepth', 1, 'Name', varName))
+        delete_block(probeBlock);
+    end
+
+    add_block('simulink/Sinks/To Workspace', probeBlock, ...
+        'VariableName', varName, ...
+        'SaveFormat', 'Timeseries', ...
+        'MaxDataPoints', 'inf', ...
+        'Position', [40 40 180 75]);
+
+    ph = get_param(blockPath, 'PortHandles');
+
+    switch lower(portType)
+        case 'out'
+            if numel(ph.Outport) < portIndex
+                error('块 %s 没有第 %d 个输出端口。', blockPath, portIndex);
+            end
+            srcPort = ph.Outport(portIndex);
+
+        case 'in'
+            lh = get_param(blockPath, 'LineHandles');
+            if numel(lh.Inport) < portIndex || lh.Inport(portIndex) < 0
+                error('块 %s 的第 %d 个输入端口没有接入信号线。', blockPath, portIndex);
+            end
+            srcPort = get_param(lh.Inport(portIndex), 'SrcPortHandle');
+            if srcPort < 0
+                error('无法找到 %s 第 %d 个输入端口的信号源。', blockPath, portIndex);
+            end
+
+        otherwise
+            error('portType 只能是 out 或 in。');
+    end
+
+    probePorts = get_param(probeBlock, 'PortHandles');
+    add_line(parentSystem, srcPort, probePorts.Inport(1), 'autorouting', 'on');
+end
+
+function raw = getSimOutVariable(simOut, varName)
+% 从 SimulationOutput 中安全读取 To Workspace 变量。
+    raw = [];
+    try
+        raw = simOut.get(varName);
+        return;
+    catch
+    end
+
+    try
+        if isprop(simOut, varName)
+            raw = simOut.(varName);
+            return;
+        end
+    catch
+    end
+
+    % 如果当前 Simulink 版本没有把 To Workspace 返回到 simOut，
+    % 变量可能被写入 base workspace。这里用唯一变量名兜底读取。
+    try
+        if evalin('base', sprintf('exist(''%s'', ''var'')', varName))
+            raw = evalin('base', varName);
+        end
+    catch
+    end
+end
+
+function signals = collectProbeSignals(simOut, attached)
+% 把所有探针变量统一读成 signals.xxx.x 和 signals.xxx.t。
+% 如果某个变量为空，立即报错，避免最后少图。
+    signals = struct();
+    for i = 1:numel(attached)
+        item = attached(i);
+        raw = getSimOutVariable(simOut, item.varName);
+        if isempty(raw)
+            error('simOut/base workspace 中没有找到探针变量：%s（节点：%s）', ...
+                item.varName, item.name);
+        end
+
+        [x, t] = signalToVector(raw);
+        if isempty(x)
+            error('探针 %s 读取到的数据为空。', item.name);
+        end
+
+        signals.(item.name) = struct('x', x, 't', t);
+    end
+end
+
+function [x, t] = signalToVector(raw)
+% 将 To Workspace 记录的数据统一转成一维复数向量 x 和时间向量 t。
+% 支持 timeseries、Structure With Time、普通数值数组等常见格式。
+    x = [];
     t = [];
-    return;
-end
 
-t = double(t(:));
-x = squeeze(x);
-
-if ~isvector(x)
-    sz = size(x);
-    if ~isempty(t) && sz(1) == numel(t)
-        % 多通道/多帧时取第一列，保证得到一条一维波形。
-        x = reshape(x, sz(1), []);
-        x = x(:, 1);
+    if isa(raw, 'timeseries')
+        t = raw.Time(:);
+        data = raw.Data;
+    elseif isstruct(raw) && isfield(raw, 'time') && isfield(raw, 'signals')
+        t = raw.time(:);
+        data = raw.signals.values;
+    elseif isnumeric(raw)
+        data = raw;
     else
-        x = x(:);
-        t = (0:numel(x)-1).' / fs_hint;
+        try
+            data = raw.Values.Data;
+            t = raw.Values.Time(:);
+        catch
+            warning('暂不支持的数据格式：%s', class(raw));
+            return;
+        end
     end
-else
+
+    data = squeeze(data);
+
+    % 如果数据是 [N x 2] 或 [2 x N] 的实数形式，按 I/Q 两路合成为复信号。
+    if isreal(data) && isnumeric(data)
+        if ismatrix(data) && size(data, 2) == 2 && size(data, 1) > 2
+            data = data(:, 1) + 1j * data(:, 2);
+        elseif ismatrix(data) && size(data, 1) == 2 && size(data, 2) > 2
+            data = data(1, :) + 1j * data(2, :);
+        end
+    end
+
+    % 帧信号常表现为二维矩阵。这里取最长维度作为观测向量：
+    %   - 若每个时刻输出一个频率向量，通常取最后一帧；
+    %   - 若本来就是一列时间序列，则直接取整列。
+    if isvector(data)
+        x = data(:);
+    elseif ismatrix(data)
+        if ~isempty(t) && size(data, 1) == numel(t)
+            if size(data, 2) == 1
+                x = data(:, 1);
+            else
+                x = data(end, :).';
+                t = [];
+            end
+        elseif ~isempty(t) && size(data, 2) == numel(t)
+            if size(data, 1) == 1
+                x = data(1, :).';
+            else
+                x = data(:, end);
+                t = [];
+            end
+        elseif size(data, 1) >= size(data, 2)
+            x = data(:, 1);
+        else
+            x = data(1, :).';
+        end
+    else
+        data = data(:);
+        x = data(:);
+    end
+
     x = x(:);
+    bad = ~isfinite(real(x)) | ~isfinite(imag(x));
+    x(bad) = [];
+
+    if ~isempty(t) && numel(t) ~= numel(x)
+        t = [];
+    end
 end
 
-if isempty(t)
-    t = (0:numel(x)-1).' / fs_hint;
+function plotLinearSpectrum(x, t, ttl, useWindow)
+% 绘制双边线性幅度频谱，不做 dB 转换，也不归一化。
+    [f, mag, fScale, fLabel] = computeLinearSpectrum(x, t, useWindow);
+
+    plot(f / fScale, mag, 'LineWidth', 1.1);
+    grid on;
+    xlabel(fLabel);
+    ylabel('线性幅度');
+    title(ttl, 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
 end
 
-if numel(t) ~= numel(x)
-    n = min(numel(t), numel(x));
-    if n >= 2
-        t = t(1:n);
-        x = x(1:n);
+function plotLinearSpectrumCompare(x1, t1, label1, x2, t2, label2, ttl, useWindow)
+% 绘制两路信号的双边线性幅度频谱对比。
+    [f1, mag1, fScale1, fLabel1] = computeLinearSpectrum(x1, t1, useWindow);
+    [f2, mag2, fScale2, ~] = computeLinearSpectrum(x2, t2, useWindow);
+
+    if abs(fScale1 - fScale2) > eps
+        f2 = f2 / fScale2 * fScale1;
+    end
+
+    plot(f1 / fScale1, mag1, 'LineWidth', 1.1); hold on;
+    plot(f2 / fScale1, mag2, 'LineWidth', 1.1);
+    grid on;
+    xlabel(fLabel1);
+    ylabel('线性幅度');
+    title(ttl, 'Interpreter', 'none');
+    legend({label1, label2}, 'Location', 'best', 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+end
+
+function [f, mag, fScale, fLabel] = computeLinearSpectrum(x, t, useWindow)
+% 计算双边线性幅度频谱。
+    x = x(:);
+
+    finiteMask = isfinite(real(x)) & isfinite(imag(x));
+    if any(finiteMask)
+        x = x - mean(x(finiteMask));
+    end
+
+    n = numel(x);
+    if n < 4
+        error('有效采样点太少，无法计算频谱。');
+    end
+
+    if nargin < 2 || isempty(t)
+        fs = 1;
+        fScale = 1;
+        fLabel = '归一化频率';
     else
-        x = x(:);
-        t = (0:numel(x)-1).' / fs_hint;
+        dt = median(diff(t));
+        fs = 1 / dt;
+        [fScale, fLabel] = chooseFreqScale(fs);
+    end
+
+    nfft = 2 ^ nextpow2(max(n, 1024));
+
+    if useWindow
+        w = localHannWindow(n);
+        coherentGain = mean(w);
+        xw = x .* w;
+    else
+        coherentGain = 1;
+        xw = x;
+    end
+
+    X = fftshift(fft(xw, nfft)) / max(n * coherentGain, eps);
+    f = (-nfft/2:nfft/2-1).' * fs / nfft;
+    mag = abs(X);
+end
+
+
+function plotAbsoluteDbSpectrum(x, t, ttl, useWindow)
+% 绘制双边非归一化 dB 幅度频谱。
+    [f, magDb, fScale, fLabel] = computeAbsoluteDbSpectrum(x, t, useWindow);
+
+    plot(f / fScale, magDb, 'LineWidth', 1.1);
+    grid on;
+    xlabel(fLabel);
+    ylabel('非归一化幅度 / dB');
+    title(ttl, 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+end
+
+function plotAbsoluteDbSpectrumCompare(x1, t1, label1, x2, t2, label2, ttl, useWindow)
+% 绘制两路信号的双边非归一化 dB 幅度频谱对比。
+    [f1, mag1, fScale1, fLabel1] = computeAbsoluteDbSpectrum(x1, t1, useWindow);
+    [f2, mag2, fScale2, ~] = computeAbsoluteDbSpectrum(x2, t2, useWindow);
+
+    if abs(fScale1 - fScale2) > eps
+        f2 = f2 / fScale2 * fScale1;
+    end
+
+    plot(f1 / fScale1, mag1, 'LineWidth', 1.1); hold on;
+    plot(f2 / fScale1, mag2, 'LineWidth', 1.1);
+    grid on;
+    xlabel(fLabel1);
+    ylabel('非归一化幅度 / dB');
+    title(ttl, 'Interpreter', 'none');
+    legend({label1, label2}, 'Location', 'best', 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+end
+
+function [f, magDb, fScale, fLabel] = computeAbsoluteDbSpectrum(x, t, useWindow)
+% 计算双边非归一化 dB 幅度频谱。
+    x = x(:);
+
+    finiteMask = isfinite(real(x)) & isfinite(imag(x));
+    if any(finiteMask)
+        x = x - mean(x(finiteMask));
+    end
+
+    n = numel(x);
+    if n < 4
+        error('有效采样点太少，无法计算频谱。');
+    end
+
+    if nargin < 2 || isempty(t)
+        fs = 1;
+        fScale = 1;
+        fLabel = '归一化频率';
+    else
+        dt = median(diff(t));
+        fs = 1 / dt;
+        [fScale, fLabel] = chooseFreqScale(fs);
+    end
+
+    nfft = 2 ^ nextpow2(max(n, 1024));
+
+    if useWindow
+        w = localHannWindow(n);
+        coherentGain = mean(w);
+        xw = x .* w;
+    else
+        coherentGain = 1;
+        xw = x;
+    end
+
+    X = fftshift(fft(xw, nfft)) / max(n * coherentGain, eps);
+    f = (-nfft/2:nfft/2-1).' * fs / nfft;
+
+    % 关键：这里是非归一化 dB，不减 max(magDb)
+    magDb = 20 * log10(abs(X) + eps);
+end
+
+
+function plotDoubleSidedSpectrum(x, t, ttl, normalizeToPeak, useWindow)
+% 绘制双边频谱。复信号会自然显示正、负频率两侧。
+    [f, magDb, fScale, fLabel, yLabel] = computeDoubleSidedSpectrum( ...
+        x, t, normalizeToPeak, useWindow);
+
+    plot(f / fScale, magDb, 'LineWidth', 1.1);
+    grid on;
+    xlabel(fLabel);
+    ylabel(yLabel);
+    title(ttl, 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+end
+
+function [f, magDb, fScale, fLabel, yLabel] = computeDoubleSidedSpectrum(x, t, normalizeToPeak, useWindow)
+% 计算双边频谱。单图和对比图共用该函数，保证频率轴和归一化方式一致。
+    x = x(:);
+    finiteMask = isfinite(real(x)) & isfinite(imag(x));
+    if any(finiteMask)
+        x = x - mean(x(finiteMask));
+    end
+    n = numel(x);
+
+    if n < 4
+        error('有效采样点太少，无法计算频谱。');
+    end
+
+    if nargin < 2 || isempty(t)
+        fs = 1;
+        fLabel = '归一化频率';
+        fScale = 1;
+    else
+        dt = median(diff(t));
+        fs = 1 / dt;
+        [fScale, fLabel] = chooseFreqScale(fs);
+    end
+
+    nfft = 2 ^ nextpow2(max(n, 1024));
+
+    if useWindow
+        w = localHannWindow(n);
+        coherentGain = mean(w);
+        xw = x .* w;
+    else
+        coherentGain = 1;
+        xw = x;
+    end
+
+    X = fftshift(fft(xw, nfft)) / max(n * coherentGain, eps);
+    f = (-nfft/2:nfft/2-1).' * fs / nfft;
+    magDb = 20 * log10(abs(X) + eps);
+
+    if normalizeToPeak
+        magDb = magDb - max(magDb);
+        yLabel = '归一化幅度 / dB';
+    else
+        yLabel = '幅度 / dB';
     end
 end
 
-bad = isnan(real(x)) | isinf(real(x)) | isnan(imag(x)) | isinf(imag(x));
-if any(bad)
-    x(bad) = 0;
-end
-end
+function plotSpectrumCompare(x1, t1, label1, x2, t2, label2, ttl, normalizeToPeak, useWindow)
+% 绘制两路信号的双边频谱对比。
+    [f1, mag1, fScale1, fLabel1, yLabel1] = computeDoubleSidedSpectrum( ...
+        x1, t1, normalizeToPeak, useWindow);
+    [f2, mag2, fScale2, ~, ~] = computeDoubleSidedSpectrum( ...
+        x2, t2, normalizeToPeak, useWindow);
 
-% ========================================================================
-% 绘图：源时域 + 时频图
-% ========================================================================
-function fig_path = local_plot_source_time_frequency(def, var_name, t, x, cfg, opts)
-fig = figure('Name', def.Name, 'Color', 'w', 'Visible', opts.Visible, ...
-    'Position', [80 80 1100 720]);
-
-subplot(2, 1, 1);
-t_end = min(t(end), opts.TimePreviewUs * 1e-6);
-idx = t <= t_end;
-plot(t(idx) * 1e6, real(x(idx)), 'LineWidth', 0.8);
-grid on;
-xlabel('Time (\mus)');
-ylabel('Amplitude');
-title(sprintf('%s：时域步进频率 burst  (%s)', def.Name, var_name), 'Interpreter', 'none');
-
-subplot(2, 1, 2);
-max_tf_hz = min([opts.SourceTfMaxMHz * 1e6, local_get_fs(t)/2, max(cfg.freq.hz) * 1.25]);
-[tf_t, tf_f, tf_db] = local_stft_map(t, x, cfg, max_tf_hz, opts);
-imagesc(tf_t * 1e6, tf_f / 1e6, tf_db);
-axis xy;
-try
-    colormap(gca, 'turbo');
-catch
-    colormap(gca, 'parula');
-end
-cb = colorbar;
-ylabel(cb, 'Normalized magnitude (dB)');
-xlabel('Time (\mus)');
-ylabel('Frequency (MHz)');
-title('SFW_Burst_Src 时频图：频率随 step 递增');
-
-% 叠加理论 step 中心频率，便于核对时频轨迹。
-hold on;
-try
-    n_step = min([numel(cfg.freq.hz), cfg.time.step_count]);
-    step_t = ((0:n_step-1) + 0.5) * cfg.time.pri_s;
-    plot(step_t * 1e6, cfg.freq.hz(1:n_step) / 1e6, 'w.', 'MarkerSize', 5);
-catch
-end
-
-ylim([0 max_tf_hz / 1e6]);
-fig_path = local_save_figure(fig, opts.OutputDir, def.FileName, opts);
-end
-
-% ========================================================================
-% 绘图：单节点频谱
-% ========================================================================
-function fig_path = local_plot_single_spectrum(def, var_name, f_hz, mag_db, cfg, opts)
-fig = figure('Name', def.Name, 'Color', 'w', 'Visible', opts.Visible, ...
-    'Position', [100 100 1050 560]);
-plot(f_hz / 1e6, mag_db, 'LineWidth', 0.85);
-grid on;
-xlabel('Frequency (MHz)');
-ylabel('Magnitude (dB, normalized)');
-title(sprintf('%s  (%s)', def.Name, var_name), 'Interpreter', 'none');
-try
-    subtitle(def.Expected, 'Interpreter', 'none');
-catch
-    text(0.01, 0.96, def.Expected, 'Units', 'normalized', 'Interpreter', 'none', ...
-        'VerticalAlignment', 'top', 'FontSize', 9);
-end
-
-xlim([0 min(opts.MaxFreqMHz, max(f_hz) / 1e6)]);
-ylim([opts.YFloorDb 5]);
-local_mark_expected_bands(def.Name, cfg, opts);
-
-fig_path = local_save_figure(fig, opts.OutputDir, def.FileName, opts);
-end
-
-function fig_path = local_plot_pair_overlay(records, names, fig_title, file_name, cfg, opts)
-fig_path = '';
-idx = [];
-for i = 1:numel(records)
-    if any(strcmp(records(i).Name, names))
-        idx(end+1) = i; %#ok<AGROW>
+    if abs(fScale1 - fScale2) > eps
+        f2 = f2 / fScale2 * fScale1;
     end
-end
-if numel(idx) < 2
-    return;
+
+    plot(f1 / fScale1, mag1, 'LineWidth', 1.1); hold on;
+    plot(f2 / fScale1, mag2, 'LineWidth', 1.1);
+    grid on;
+    xlabel(fLabel1);
+    ylabel(yLabel1);
+    title(ttl, 'Interpreter', 'none');
+    legend({label1, label2}, 'Location', 'best', 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
 end
 
-fig = figure('Name', fig_title, 'Color', 'w', 'Visible', opts.Visible, ...
-    'Position', [120 120 1050 560]);
-hold on;
-for k = 1:numel(idx)
-    r = records(idx(k));
-    plot(r.FreqHz / 1e6, r.MagDb, 'LineWidth', 0.95, 'DisplayName', r.Name);
-end
-grid on;
-xlabel('Frequency (MHz)');
-ylabel('Magnitude (dB, normalized)');
-title(fig_title);
-legend('Location', 'best', 'Interpreter', 'none');
-xlim([0 min(opts.MaxFreqMHz, max(records(idx(1)).FreqHz) / 1e6)]);
-ylim([opts.YFloorDb 5]);
-local_mark_expected_bands('发射天线前后', cfg, opts);
-fig_path = local_save_figure(fig, opts.OutputDir, file_name, opts);
-end
-
-function fig_path = local_plot_all_overlay(records, cfg, opts)
-fig_path = '';
-if isempty(records)
-    return;
-end
-fig = figure('Name', 'All requested spectra overlay', 'Color', 'w', 'Visible', opts.Visible, ...
-    'Position', [140 140 1150 640]);
-hold on;
-for i = 1:numel(records)
-    if isempty(records(i).FreqHz) || strcmp(records(i).Kind, 'source')
-        continue;
+function plotTimeAndSpectrogram(x, t, ttl)
+% 绘制 SFW_Burst_Src 的时域波形和时频图。
+% 时频图使用脚本内置 STFT，避免依赖 spectrogram 函数。
+    x = x(:);
+    n = numel(x);
+    if n < 8
+        error('有效采样点太少，无法绘制时频图。');
     end
-    plot(records(i).FreqHz / 1e6, records(i).MagDb, 'LineWidth', 0.8, ...
-        'DisplayName', records(i).Name);
-end
-grid on;
-xlabel('Frequency (MHz)');
-ylabel('Magnitude (dB, normalized)');
-title('所有指定观测点频谱叠加总览');
-legend('Location', 'eastoutside', 'Interpreter', 'none', 'FontSize', 8);
-xlim([0 min(opts.MaxFreqMHz, local_get_fs(records(1).Time)/2/1e6)]);
-ylim([opts.YFloorDb 5]);
-local_mark_expected_bands('总览', cfg, opts);
-fig_path = local_save_figure(fig, opts.OutputDir, '07_all_requested_spectra_overlay', opts);
-end
 
-% ========================================================================
-% 频谱与时频计算
-% ========================================================================
-function [f_hz, mag_db] = local_fft_spectrum(t, x, opts, two_sided)
-fs = local_get_fs(t);
-x = x(:);
-
-% 控制 FFT 点数，信号太长时等间隔抽样，避免图太慢。
-if numel(x) > opts.MaxSamplesForFFT
-    stride = ceil(numel(x) / opts.MaxSamplesForFFT);
-    x = x(1:stride:end);
-    fs = fs / stride;
-end
-
-x = x - mean(x);
-n = numel(x);
-if n < 4
-    f_hz = 0;
-    mag_db = opts.YFloorDb;
-    return;
-end
-
-win = local_hann(n);
-nfft = 2 ^ nextpow2(min(max(n, 1024), opts.MaxNFFT));
-X = fft(x .* win, nfft);
-
-if two_sided
-    X = fftshift(X);
-    f_hz = ((-nfft/2):(nfft/2-1)).' * fs / nfft;
-    mag = abs(X(:));
-else
-    half = floor(nfft / 2) + 1;
-    X = X(1:half);
-    f_hz = (0:half-1).' * fs / nfft;
-    mag = abs(X(:));
-end
-
-mag = mag / max(sum(win), eps);
-mag_db = 20 * log10(mag + eps);
-if opts.NormalizeToPeak
-    mag_db = mag_db - max(mag_db);
-end
-mag_db(mag_db < opts.YFloorDb) = opts.YFloorDb;
-
-max_hz = min(opts.MaxFreqMHz * 1e6, fs / 2);
-mask = f_hz >= 0 & f_hz <= max_hz;
-f_hz = f_hz(mask);
-mag_db = mag_db(mask);
-end
-
-function [tmid, f, db] = local_stft_map(t, x, cfg, max_hz, opts)
-fs = local_get_fs(t);
-x = real(x(:));
-x = x - mean(x);
-n = numel(x);
-
-win_len = max(64, round(0.50 * cfg.time.pri_s * fs));
-win_len = min(win_len, n);
-hop = max(1, round(0.50 * cfg.time.pri_s * fs));
-
-% 限制帧数，避免全 501 step 时图片过大。
-max_frames = opts.MaxSTFTFrames;
-if n > win_len
-    raw_frames = floor((n - win_len) / hop) + 1;
-    if raw_frames > max_frames
-        hop = ceil((n - win_len) / max(max_frames - 1, 1));
+    if isempty(t)
+        t = (0:n-1).';
+        fs = 1;
+        timeScale = 1;
+        timeLabel = '采样点';
+        freqScale = 1;
+        freqLabel = '归一化频率';
+    else
+        t = t(:);
+        dt = median(diff(t));
+        fs = 1 / dt;
+        [timeScale, timeUnit] = chooseTimeScale(t);
+        t = t / timeScale;
+        timeLabel = ['时间 / ' timeUnit];
+        [freqScale, freqLabel] = chooseFreqScale(fs);
     end
-end
 
-nfft = 2 ^ nextpow2(max(win_len, 512));
-win = local_hann(win_len);
-f_all = (0:floor(nfft/2)).' * fs / nfft;
-f_mask = f_all <= max_hz;
-f = f_all(f_mask);
+    subplot(2, 1, 1);
+    plot(t, real(x), 'LineWidth', 1.0); hold on;
+    if ~isreal(x)
+        plot(t, imag(x), 'LineWidth', 1.0);
+        legend({'I/实部', 'Q/虚部'}, 'Location', 'best');
+    end
+    grid on;
+    xlabel(timeLabel);
+    ylabel('幅度');
+    title(ttl, 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
 
-starts = 1:hop:(n - win_len + 1);
-S = zeros(numel(f), numel(starts));
-tmid = zeros(1, numel(starts));
+    winLen = min(max(64, 2 ^ floor(log2(n / 16))), 1024);
+    winLen = min(winLen, n);
+    hop = max(1, floor(winLen / 4));
+    nfft = 2 ^ nextpow2(max(winLen, 256));
+    [S, tf, ff] = localStft(x, fs, winLen, hop, nfft);
+    Sdb = 20 * log10(abs(S) + eps);
+    Sdb = Sdb - max(Sdb(:));
 
-for k = 1:numel(starts)
-    ii = starts(k):(starts(k) + win_len - 1);
-    X = fft(x(ii) .* win, nfft);
-    A = abs(X(1:numel(f_all)));
-    S(:, k) = A(f_mask);
-    tmid(k) = mean(t(ii));
-end
-
-db = 20 * log10(S + eps);
-db = db - max(db(:));
-db(db < opts.TFFloorDb) = opts.TFFloorDb;
-end
-
-function fs = local_get_fs(t)
-if numel(t) >= 3
-    dt = median(diff(t));
-    fs = 1 / max(dt, eps);
-else
-    fs = 1;
-end
-end
-
-function w = local_hann(n)
-if n <= 1
-    w = 1;
-else
-    w = 0.5 - 0.5 * cos(2*pi*(0:n-1).'/(n-1));
-end
-end
-
-% ========================================================================
-% 频带标记
-% ========================================================================
-function local_mark_expected_bands(name, cfg, opts)
-hold on;
-yl = ylim;
-
-% 原始 SFW 频带
-try
-    local_draw_band(cfg.freq.hz(1) / 1e6, cfg.freq.hz(end) / 1e6, yl, 'SFW');
-catch
-end
-
-% 200 MHz 本振
-try
-    local_draw_vline(cfg.tap_mixer.lo_hz / 1e6, yl, 'LO');
-catch
-end
-
-% 上边带 / 上变频 BPF / IF 带宽
-lower_name = lower(name);
-if contains(lower_name, '上变频') || contains(lower_name, 'tap') || contains(lower_name, '总览')
+    subplot(2, 1, 2);
+    imagesc(tf / timeScale + min(t), ff / freqScale, Sdb);
+    axis xy;
     try
-        local_draw_band(cfg.tap_mixer.upper_sideband_hz(1) / 1e6, ...
-            cfg.tap_mixer.upper_sideband_hz(2) / 1e6, yl, 'LO+f');
+        colormap turbo;
+    catch
+        colormap parula;
+    end
+    colorbar;
+    caxis([-80 0]);
+    xlabel(timeLabel);
+    ylabel(freqLabel);
+    title('短时频谱 / dB', 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+end
+
+function [S, tf, ff] = localStft(x, fs, winLen, hop, nfft)
+% 简单 STFT：返回双边频率轴，便于观察步进频率随时间变化。
+    x = x(:);
+    w = localHannWindow(winLen);
+    starts = 1:hop:(numel(x) - winLen + 1);
+    if isempty(starts)
+        starts = 1;
+        winLen = numel(x);
+        w = localHannWindow(winLen);
+    end
+
+    S = zeros(nfft, numel(starts));
+    for k = 1:numel(starts)
+        idx = starts(k):(starts(k) + winLen - 1);
+        frame = x(idx) .* w;
+        S(:, k) = fftshift(fft(frame, nfft));
+    end
+    ff = (-nfft/2:nfft/2-1).' * fs / nfft;
+    tf = ((starts(:) - 1) + winLen / 2) / fs;
+end
+
+function plotIfftBeforeAfter(xBefore, xAfter, ttl)
+% 将 IFFT 前输入序列和 IFFT 后输出序列放在同一张图中对比。
+    xBefore = xBefore(:);
+    xAfter = xAfter(:);
+    beforeIdx = (0:numel(xBefore)-1).';
+    afterIdx = (0:numel(xAfter)-1).';
+
+    beforeMag = 20 * log10(abs(xBefore) / max(abs(xBefore) + eps) + eps);
+    afterMag = 20 * log10(abs(xAfter) / max(abs(xAfter) + eps) + eps);
+    beforePhase = unwrap(angle(xBefore));
+    afterPhase = unwrap(angle(xAfter));
+
+    subplot(2, 2, 1);
+    plot(beforeIdx, beforeMag, 'LineWidth', 1.1);
+    grid on;
+    xlabel('频率采样点');
+    ylabel('归一化幅值 / dB');
+    title('IFFT 前：幅频曲线', 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+
+    subplot(2, 2, 2);
+    plot(beforeIdx, beforePhase, 'LineWidth', 1.1);
+    grid on;
+    xlabel('频率采样点');
+    ylabel('相位 / rad');
+    title('IFFT 前：相频曲线', 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+
+    subplot(2, 2, 3);
+    plot(afterIdx, afterMag, 'LineWidth', 1.1);
+    grid on;
+    xlabel('距离/时延采样点');
+    ylabel('归一化幅值 / dB');
+    title('IFFT 后：幅值曲线', 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+
+    subplot(2, 2, 4);
+    plot(afterIdx, afterPhase, 'LineWidth', 1.1);
+    grid on;
+    xlabel('距离/时延采样点');
+    ylabel('相位 / rad');
+    title('IFFT 后：相位曲线', 'Interpreter', 'none');
+    set(gca, 'FontName', 'Microsoft YaHei');
+
+    localSgtitle(ttl);
+end
+
+function localSgtitle(ttl)
+% 兼容没有 sgtitle 的旧版 MATLAB。
+    try
+        sgtitle(ttl, 'Interpreter', 'none', 'FontName', 'Microsoft YaHei');
+    catch
+        annotation('textbox', [0 0.96 1 0.04], ...
+            'String', ttl, ...
+            'EdgeColor', 'none', ...
+            'HorizontalAlignment', 'center', ...
+            'Interpreter', 'none', ...
+            'FontName', 'Microsoft YaHei');
+    end
+end
+
+function [scale, unitText] = chooseTimeScale(t)
+% 根据时间量级自动选择时间单位。
+    span = max(t) - min(t);
+    if span < 1e-6
+        scale = 1e-9;
+        unitText = 'ns';
+    elseif span < 1e-3
+        scale = 1e-6;
+        unitText = 'us';
+    elseif span < 1
+        scale = 1e-3;
+        unitText = 'ms';
+    else
+        scale = 1;
+        unitText = 's';
+    end
+end
+
+function pngPath = saveNamedFigure(fig, resultDir, pngName)
+% 按指定中文文件名保存图片。
+    pngPath = fullfile(resultDir, pngName);
+    saveFigureAsPng(fig, pngPath);
+end
+
+function [scale, labelText] = chooseFreqScale(fs)
+% 根据采样率自动选择频率单位。
+    if fs >= 1e9
+        scale = 1e9;
+        labelText = '频率 / GHz';
+    elseif fs >= 1e6
+        scale = 1e6;
+        labelText = '频率 / MHz';
+    elseif fs >= 1e3
+        scale = 1e3;
+        labelText = '频率 / kHz';
+    else
+        scale = 1;
+        labelText = '频率 / Hz';
+    end
+end
+
+function w = localHannWindow(n)
+% 不依赖 Signal Processing Toolbox 的 Hann 窗。
+    if n <= 1
+        w = ones(n, 1);
+    else
+        w = 0.5 - 0.5 * cos(2 * pi * (0:n-1).' / n);
+    end
+end
+
+function saveFigureAsPng(fig, pngPath)
+% 优先使用 exportgraphics；旧版 MATLAB 则退回 print。
+    try
+        exportgraphics(fig, pngPath, 'Resolution', 200);
+    catch
+        set(fig, 'PaperPositionMode', 'auto');
+        print(fig, pngPath, '-dpng', '-r200');
+    end
+end
+
+function bringGeneratedFiguresToFront()
+% 将本脚本生成的图窗依次显示到前台。
+% 脚本开头已经 close all，因此这里找到的基本就是本次生成的 12 张图。
+    figs = findall(0, 'Type', 'figure');
+    if isempty(figs)
+        return;
+    end
+
+    % 按 Figure 编号从小到大唤起，最后会停在第 12 张图。
+    try
+        [~, order] = sort([figs.Number], 'ascend');
+        figs = figs(order);
     catch
     end
-    try
-        local_draw_band(cfg.tap_mixer.up_bpf_hz(1) / 1e6, ...
-            cfg.tap_mixer.up_bpf_hz(2) / 1e6, yl, 'Up BPF');
-    catch
+
+    for i = 1:numel(figs)
+        try
+            set(figs(i), 'Visible', 'on');
+            figure(figs(i));
+            drawnow;
+        catch
+        end
     end
 end
 
-if contains(lower_name, '下变频') || contains(lower_name, 'down') || contains(lower_name, '总览')
-    try
-        local_draw_band(cfg.down_mixer.if_bpf_hz(1) / 1e6, ...
-            cfg.down_mixer.if_bpf_hz(2) / 1e6, yl, 'IF');
-    catch
+function cleanupBaseProbeVars(varNames)
+% 清理兜底写入 base workspace 的探针变量，避免留下杂项变量。
+    for i = 1:numel(varNames)
+        try
+            evalin('base', sprintf('if exist(''%s'', ''var''), clear(''%s''); end', ...
+                varNames{i}, varNames{i}));
+        catch
+        end
     end
 end
 
-ylim(yl);
-xlim([0 min(opts.MaxFreqMHz, xlim_max_safe())]);
-end
-
-function xmax = xlim_max_safe()
-xl = get(gca, 'XLim');
-xmax = xl(2);
-end
-
-function local_draw_vline(x, yl, label_text)
-if ~isfinite(x)
-    return;
-end
-line([x x], yl, 'LineStyle', '--', 'LineWidth', 0.8, 'Color', [0.2 0.2 0.2], ...
-    'HandleVisibility', 'off');
-text(x, yl(2), [' ' label_text], 'Rotation', 90, 'VerticalAlignment', 'top', ...
-    'FontSize', 8, 'Color', [0.2 0.2 0.2], 'HandleVisibility', 'off');
-end
-
-function local_draw_band(x1, x2, yl, label_text)
-if ~isfinite(x1) || ~isfinite(x2)
-    return;
-end
-x1 = max(0, min(x1, x2));
-x2 = max(x1, max(x1, x2));
-if x2 <= x1
-    return;
-end
-p = patch([x1 x2 x2 x1], [yl(1) yl(1) yl(2) yl(2)], [0.85 0.85 0.85], ...
-    'FaceAlpha', 0.18, 'EdgeColor', 'none', 'HandleVisibility', 'off');
-uistack(p, 'bottom');
-text((x1+x2)/2, yl(1) + 0.08*(yl(2)-yl(1)), label_text, ...
-    'HorizontalAlignment', 'center', 'FontSize', 8, 'Color', [0.25 0.25 0.25], ...
-    'HandleVisibility', 'off');
-end
-
-% ========================================================================
-% 工具函数
-% ========================================================================
-function fig_path = local_save_figure(fig, out_dir, file_name, opts)
-fig_path = fullfile(out_dir, [file_name '.png']);
-try
-    exportgraphics(fig, fig_path, 'Resolution', opts.ResolutionDPI);
-catch
-    saveas(fig, fig_path);
-end
-if opts.SaveFigFile
-    try
-        savefig(fig, fullfile(out_dir, [file_name '.fig']));
-    catch
+function closeTempModel(modelName)
+% 关闭临时模型，不保存。
+    if bdIsLoaded(modelName)
+        close_system(modelName, 0);
     end
 end
-if strcmpi(opts.Visible, 'off')
-    close(fig);
-end
-end
 
-function opts = local_parse_opts(varargin)
-p = inputParser;
-p.FunctionName = 'ex18_observe_requested_spectra';
-addParameter(p, 'RunSimulation', true, @(x)islogical(x) || isnumeric(x));
-addParameter(p, 'SampleRate', 2e9, @(x)isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'StepCount', [], @(x)isempty(x) || (isnumeric(x) && isscalar(x) && x >= 1));
-addParameter(p, 'OutputDir', fullfile('output', 'ex18_requested_spectra'), @(x)ischar(x) || isstring(x));
-addParameter(p, 'Visible', 'on', @(x)ischar(x) || isstring(x));
-addParameter(p, 'MaxFreqMHz', 900, @(x)isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'SourceTfMaxMHz', 320, @(x)isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'TimePreviewUs', 8, @(x)isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'NormalizeToPeak', true, @(x)islogical(x) || isnumeric(x));
-addParameter(p, 'YFloorDb', -100, @(x)isnumeric(x) && isscalar(x));
-addParameter(p, 'TFFloorDb', -80, @(x)isnumeric(x) && isscalar(x));
-addParameter(p, 'MaxSamplesForFFT', 2^20, @(x)isnumeric(x) && isscalar(x) && x >= 1024);
-addParameter(p, 'MaxNFFT', 2^20, @(x)isnumeric(x) && isscalar(x) && x >= 1024);
-addParameter(p, 'MaxSTFTFrames', 1200, @(x)isnumeric(x) && isscalar(x) && x >= 10);
-addParameter(p, 'ResolutionDPI', 220, @(x)isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'SaveFigFile', false, @(x)islogical(x) || isnumeric(x));
-parse(p, varargin{:});
-opts = p.Results;
-opts.RunSimulation = logical(opts.RunSimulation);
-opts.NormalizeToPeak = logical(opts.NormalizeToPeak);
-opts.SaveFigFile = logical(opts.SaveFigFile);
-opts.OutputDir = char(opts.OutputDir);
-opts.Visible = char(opts.Visible);
-if ~isempty(opts.StepCount)
-    opts.StepCount = round(opts.StepCount);
-end
+function cleanupTempModel(tempRoot)
+% 删除临时目录。失败也不影响原始模型。
+    if exist(tempRoot, 'dir')
+        try
+            rmdir(tempRoot, 's');
+        catch
+        end
+    end
 end

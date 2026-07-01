@@ -1,0 +1,1350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<System>
+  <P Name="Location">[-1, -7, 1707, 1020]</P>
+  <P Name="Open">on</P>
+  <P Name="ZoomFactor">50</P>
+  <P Name="ReportName">simulink-default.rpt</P>
+  <P Name="SIDHighWatermark">123</P>
+  <Block BlockType="ToWorkspace" Name="DSP_AScan_Log1" SID="49">
+    <PortCounts in="1"/>
+    <P Name="Position">[5020, 170, 5140, 200]</P>
+    <P Name="ZOrder">1699</P>
+    <P Name="VariableName">dsp_ascan_sub_log1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ArrayPlot" Name="DSP_ArrayPlot1" SID="50">
+    <PortCounts in="1"/>
+    <P Name="Position">[5020, -85, 5320, 115]</P>
+    <P Name="ZOrder">1698</P>
+    <P Name="GraphicalSettings">{&quot;Style&quot;:{&quot;BackgroundColor&quot;:[0.12941176470588237,0.12941176470588237,0.12941176470588237],&quot;AxesColor&quot;:[0.070588235294117646,0.070588235294117646,0.070588235294117646],&quot;LabelsColor&quot;:[0.85098039215686272,0.85098039215686272,0.85098039215686272],&quot;PreserveColors&quot;:false,&quot;Visible&quot;:true,&quot;LineStyle&quot;:[&quot;-&quot;],&quot;LineWidth&quot;:1.5,&quot;BarWidth&quot;:0.9,&quot;LineColor&quot;:[1,0.90980392156862744,0.39215686274509803],&quot;LineFaceAlpha&quot;:1,&quot;LineEdgeAlpha&quot;:1,&quot;Marker&quot;:[&quot;o&quot;],&quot;FontSize&quot;:8.5},&quot;MeasurementChannel&quot;:0}</P>
+    <P Name="WindowPosition">[660.000000,212.000000,800.000000,500.000000,]</P>
+    <P Name="ScopeFrameLocation">window</P>
+    <P Name="WasSavedAsWebScope">on</P>
+    <P Name="SampleIncrement">3.992</P>
+    <P Name="AxesScaling">Auto</P>
+    <P Name="AxesScalingNumUpdates">1</P>
+    <P Name="MultipleDisplayCache">{&quot;PlotAsMagnitudePhase&quot;:[false],&quot;ShowGrid&quot;:[true],&quot;ShowLegend&quot;:[false],&quot;Title&quot;:[&quot;A-scan (dR=0.598 m, Ru=299.792 m)&quot;],&quot;XLabel&quot;:[&quot;Delay (ns)&quot;],&quot;YLabel&quot;:[&quot;Amplitude&quot;],&quot;YLimits&quot;:[&quot;[-40.3866 366.7752]&quot;]}</P>
+    <P Name="Title">A-scan (dR=0.598 m, Ru=299.792 m)</P>
+    <P Name="XLabel">Delay (ns)</P>
+    <P Name="YLimits">[-40.3866 366.7752]</P>
+  </Block>
+  <Block BlockType="SubSystem" Name="GPR_Channel1" SID="51">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[5865, -55, 5985, 105]</P>
+    <P Name="ZOrder">1684</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="LibrarySourceProduct" Ref="bdmxdata:LibrarySourceProduct_51"/>
+    <P Name="ContentPreviewEnabled">on</P>
+    <System Ref="system_51"/>
+  </Block>
+  <Block BlockType="Reference" Name="Gnd1" SID="56">
+    <PortCounts lconn="1"/>
+    <P Name="Position">[3985, 200, 4035, 235]</P>
+    <P Name="ZOrder">1670</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="BackgroundColor">automatic</P>
+    <P Name="NameLocation">right</P>
+    <P Name="LibraryVersion">25001000.1</P>
+    <P Name="SourceBlock">simrfV2_lib/Elements/Electrical Reference</P>
+    <P Name="SourceType">Electrical Reference</P>
+    <InstanceData>
+      <P Name="LogSimulationData">off</P>
+      <P Name="SimscapeInstrumentationLogging">off</P>
+      <P Name="SimscapeInstrumentationVariables" Ref="bdmxdata:SimscapeInstrumentationVariables_56"/>
+      <P Name="SourceFile">simrfV2.elements.reference</P>
+      <P Name="InternalSimscapePortConfiguration">{&quot;Bottom&quot;:[],&quot;Left&quot;:[{&quot;id&quot;:&quot;V&quot;,&quot;label&quot;:&quot;&quot;,&quot;type&quot;:&quot;foundation.rf.circuitenvelope&quot;}],&quot;Right&quot;:[],&quot;Top&quot;:[]}</P>
+      <P Name="SscBlockScalableBuild">off</P>
+      <P Name="ComponentPath">simrfV2.elements.reference</P>
+      <P Name="ComponentVariants">[&quot;simrfV2.elements.reference&quot;]</P>
+      <P Name="ComponentVariantNames">[&quot;reference&quot;]</P>
+      <P Name="ClassName">reference</P>
+      <P Name="SchemaVersion">1</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="RealImagToComplex" Name="IQ_Combine1" SID="57">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[4500, 345, 4585, 445]</P>
+    <P Name="ZOrder">1705</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+  </Block>
+  <Block BlockType="Product" Name="IQ_Complex_Mixer1" SID="58">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[4890, 370, 4940, 430]</P>
+    <P Name="ZOrder">1701</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="Inputs">**</P>
+  </Block>
+  <Block BlockType="RealImagToComplex" Name="IQ_LO_Complex1" SID="59">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[4955, 435, 5055, 520]</P>
+    <P Name="ZOrder">1700</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">right</P>
+  </Block>
+  <Block BlockType="Sin" Name="IQ_LO_cos1" SID="60">
+    <PortCounts out="1"/>
+    <P Name="Position">[4810, 525, 4960, 565]</P>
+    <P Name="ZOrder">1693</P>
+    <P Name="Frequency">2*pi*iq_lo_hz</P>
+    <P Name="Phase">pi/2</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="Sin" Name="IQ_LO_nsin1" SID="61">
+    <PortCounts out="1"/>
+    <P Name="Position">[5055, 525, 5205, 565]</P>
+    <P Name="ZOrder">1694</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="Frequency">2*pi*iq_lo_hz</P>
+    <P Name="Phase">pi</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="DiscreteFir" Name="IQ_LPF_I1" SID="62">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[4610, 325, 4720, 385]</P>
+    <P Name="ZOrder">1703</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="InputPortMap">u0</P>
+    <P Name="OutputPortMap">o0</P>
+    <P Name="Coefficients">iq_lpf_num</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="DiscreteFir" Name="IQ_LPF_Q1" SID="63">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[4610, 405, 4720, 465]</P>
+    <P Name="ZOrder">1704</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="InputPortMap">u0</P>
+    <P Name="OutputPortMap">o0</P>
+    <P Name="Coefficients">iq_lpf_num</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="ComplexToRealImag" Name="IQ_Split1" SID="64">
+    <PortCounts in="1" out="2"/>
+    <P Name="Position">[4755, 360, 4840, 440]</P>
+    <P Name="ZOrder">1702</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+  </Block>
+  <Block BlockType="Reference" Name="Iso_Term1" SID="65">
+    <PortCounts lconn="1" rconn="1"/>
+    <P Name="Position">[3990, 110, 4030, 180]</P>
+    <P Name="ZOrder">1669</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BackgroundColor">automatic</P>
+    <P Name="NameLocation">right</P>
+    <P Name="LibraryVersion">25001000.1</P>
+    <P Name="SourceBlock">simrfV2_lib/Elements/R_RF</P>
+    <P Name="SourceType">R_RF</P>
+    <InstanceData>
+      <P Name="LogSimulationData">off</P>
+      <P Name="SimscapeInstrumentationLogging">off</P>
+      <P Name="SimscapeInstrumentationVariables" Ref="bdmxdata:SimscapeInstrumentationVariables_65"/>
+      <P Name="SourceFile">simrfV2.elements.resistor_rf</P>
+      <P Name="InternalSimscapePortConfiguration">{&quot;Bottom&quot;:[],&quot;Left&quot;:[{&quot;id&quot;:&quot;p&quot;,&quot;label&quot;:&quot;+&quot;,&quot;type&quot;:&quot;foundation.rf.circuitenvelope&quot;}],&quot;Right&quot;:[{&quot;id&quot;:&quot;n&quot;,&quot;label&quot;:&quot;-&quot;,&quot;type&quot;:&quot;foundation.rf.circuitenvelope&quot;}],&quot;Top&quot;:[]}</P>
+      <P Name="SscBlockScalableBuild">off</P>
+      <P Name="ComponentPath">simrfV2.elements.resistor_rf</P>
+      <P Name="ComponentVariants">[&quot;simrfV2.elements.resistor_rf&quot;]</P>
+      <P Name="ComponentVariantNames">[&quot;resistor_rf&quot;]</P>
+      <P Name="ClassName">resistor_rf</P>
+      <P Name="SchemaVersion">1</P>
+      <P Name="R">rf_z0_ohm</P>
+      <P Name="R_unit">Ohm</P>
+      <P Name="R_conf">compiletime</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="Log_RF1" SID="66">
+    <PortCounts in="1"/>
+    <P Name="Position">[5295, -410, 5395, -380]</P>
+    <P Name="ZOrder">1677</P>
+    <P Name="VariableName">rf_out_log1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="Log_RX1" SID="67">
+    <PortCounts in="1"/>
+    <P Name="Position">[4990, 240, 5020, 340]</P>
+    <P Name="ZOrder">1690</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">right</P>
+    <P Name="VariableName">rx_down_if_log1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="Log_RX_IQ1" SID="68">
+    <PortCounts in="1"/>
+    <P Name="Position">[4325, 305, 4445, 335]</P>
+    <P Name="ZOrder">1692</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="VariableName">rx_iq_baseband_log1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="Log_Tap1" SID="69">
+    <PortCounts in="1"/>
+    <P Name="Position">[5205, 675, 5235, 775]</P>
+    <P Name="ZOrder">1683</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="VariableName">tap_up_log1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="Reference" Name="RF_Attn1" SID="70">
+    <PortCounts lconn="1" rconn="1"/>
+    <P Name="Position">[4415, -345, 4545, -285]</P>
+    <P Name="ZOrder">1665</P>
+    <P Name="LibraryVersion">9.15</P>
+    <P Name="SourceBlock">simrfV2elements/Attenuator</P>
+    <P Name="SourceType">Attenuator</P>
+    <InstanceData>
+      <P Name="RTWMemSecFuncInitTerm">Inherit from model</P>
+      <P Name="RTWMemSecFuncExecute">Inherit from model</P>
+      <P Name="RTWMemSecDataConstants">Inherit from model</P>
+      <P Name="RTWMemSecDataInternal">Inherit from model</P>
+      <P Name="RTWMemSecDataParameters">Inherit from model</P>
+      <P Name="ContentPreviewEnabled">off</P>
+      <P Name="classname">attenuator</P>
+      <P Name="Att">rf_attn_db</P>
+      <P Name="Zin">rf_z0_ohm</P>
+      <P Name="Zout">rf_z0_ohm</P>
+      <P Name="AddNoise">on</P>
+      <P Name="InternalGrounding">on</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Reference" Name="RF_Config1" SID="71">
+    <PortCounts lconn="1"/>
+    <P Name="Position">[3990, -200, 4060, -70]</P>
+    <P Name="ZOrder">1671</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">right</P>
+    <P Name="LibraryVersion">10.0</P>
+    <P Name="SourceBlock">simrfV2util1/Configuration</P>
+    <P Name="SourceType">Configuration</P>
+    <InstanceData>
+      <P Name="RTWMemSecFuncInitTerm">Inherit from model</P>
+      <P Name="RTWMemSecFuncExecute">Inherit from model</P>
+      <P Name="RTWMemSecDataConstants">Inherit from model</P>
+      <P Name="RTWMemSecDataInternal">Inherit from model</P>
+      <P Name="RTWMemSecDataParameters">Inherit from model</P>
+      <P Name="ContentPreviewEnabled">off</P>
+      <P Name="ClassName">solver_simrf</P>
+      <P Name="AutoFreq">on</P>
+      <P Name="Tones">[]</P>
+      <P Name="Tones_unit">Hz</P>
+      <P Name="Harmonics">[]</P>
+      <P Name="NormalizeCarrierPower">on</P>
+      <P Name="SolverType">Auto</P>
+      <P Name="UseCCode">on</P>
+      <P Name="StepSize">sfw_sample_s</P>
+      <P Name="StepSize_unit">s</P>
+      <P Name="AddNoise">on</P>
+      <P Name="defaultRNG">on</P>
+      <P Name="Seed">0</P>
+      <P Name="Temperature">290.0</P>
+      <P Name="Temperature_unit">K</P>
+      <P Name="SolverDelFlag">0</P>
+      <P Name="AbsTol">1e-6</P>
+      <P Name="RelTol">1e-3</P>
+      <P Name="MaxIter">10</P>
+      <P Name="ErrorEstimationType">2-norm over all variables</P>
+      <P Name="EnableInterpFilter">on</P>
+      <P Name="HiddenFIRfilterControllerParam">on</P>
+      <P Name="SmallSignalApprox">off</P>
+      <P Name="AllSimFreqs">on</P>
+      <P Name="SimFreqs">[]</P>
+      <P Name="SimFreqs_unit">Hz</P>
+      <P Name="SimFreqsInternal">[]</P>
+      <P Name="SamplesPerFrame">1</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Reference" Name="RF_Coupler1" SID="72">
+    <PortCounts lconn="2" rconn="2"/>
+    <P Name="Position">[4045, -45, 4205, 135]</P>
+    <P Name="ZOrder">1668</P>
+    <P Name="LibraryVersion">9.15</P>
+    <P Name="UserDataPersistent">on</P>
+    <P Name="UserData" Ref="bdmxdata:UserData_72"/>
+    <P Name="SourceBlock">simrfV2elements/S-parameters</P>
+    <P Name="SourceType">S-parameters</P>
+    <InstanceData>
+      <P Name="RTWMemSecFuncInitTerm">Inherit from model</P>
+      <P Name="RTWMemSecFuncExecute">Inherit from model</P>
+      <P Name="RTWMemSecDataConstants">Inherit from model</P>
+      <P Name="RTWMemSecDataInternal">Inherit from model</P>
+      <P Name="RTWMemSecDataParameters">Inherit from model</P>
+      <P Name="ContentPreviewEnabled">off</P>
+      <P Name="classname">sparam_element</P>
+      <P Name="DataSource">Network-parameters</P>
+      <P Name="File">unitygain.s2p</P>
+      <P Name="isNetworkObj">off</P>
+      <P Name="NetworkObject">sparameters(&apos;default.s2p&apos;)</P>
+      <P Name="Paramtype">S-parameters</P>
+      <P Name="Sparam">[0 0 0 0;0.70794578438413791 0 0 0;0 0 0 0;0.50118723362727224 0 0 0]</P>
+      <P Name="SparamFreq">95000000</P>
+      <P Name="SparamFreq_unit">Hz</P>
+      <P Name="SparamZ0">50</P>
+      <P Name="isRationalObj">off</P>
+      <P Name="RationalObject">rational(&apos;default.s2p&apos;)</P>
+      <P Name="Residues">0</P>
+      <P Name="Poles">0</P>
+      <P Name="DF">{0 0; 1 0}</P>
+      <P Name="FitOpt">Share all poles</P>
+      <P Name="FitTol">-40</P>
+      <P Name="MaxPoles">48</P>
+      <P Name="SourceFreq">Extracted from data source</P>
+      <P Name="PlotFreq">[1e9:1e6:3e9]</P>
+      <P Name="PlotFreq_unit">Hz</P>
+      <P Name="PlotType">X-Y plane</P>
+      <P Name="YParam1">S(1,1)</P>
+      <P Name="YFormat1">Magnitude (dB)</P>
+      <P Name="YParam2">None</P>
+      <P Name="YFormat2">Magnitude (dB)</P>
+      <P Name="YOption">Linear</P>
+      <P Name="XOption">Linear</P>
+      <P Name="AddNoise">off</P>
+      <P Name="InternalGrounding">on</P>
+      <P Name="SparamRepresentation">Time domain</P>
+      <P Name="AutoImpulseLength">on</P>
+      <P Name="ImpulseLength">1e-10</P>
+      <P Name="ImpulseLength_unit">s</P>
+      <P Name="MagModeling">off</P>
+      <P Name="CacheLevel">0</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Reference" Name="RF_In1" SID="73">
+    <PortCounts in="1" rconn="1"/>
+    <P Name="Position">[3850, -30, 3960, 30]</P>
+    <P Name="ZOrder">1664</P>
+    <P Name="LibraryVersion">10.0</P>
+    <P Name="SourceBlock">simrfV2util1/Inport</P>
+    <P Name="SourceType">Inport</P>
+    <InstanceData>
+      <P Name="RTWMemSecFuncInitTerm">Inherit from model</P>
+      <P Name="RTWMemSecFuncExecute">Inherit from model</P>
+      <P Name="RTWMemSecDataConstants">Inherit from model</P>
+      <P Name="RTWMemSecDataInternal">Inherit from model</P>
+      <P Name="RTWMemSecDataParameters">Inherit from model</P>
+      <P Name="ContentPreviewEnabled">off</P>
+      <P Name="ClassName">input_gateway</P>
+      <P Name="SimulinkInputSignalType">Ideal voltage</P>
+      <P Name="CarrierFreq">0</P>
+      <P Name="CarrierFreq_unit">Hz</P>
+      <P Name="ZS">rf_z0_ohm</P>
+      <P Name="UseSqWave">off</P>
+      <P Name="NumCoeff">10</P>
+      <P Name="Bias">0</P>
+      <P Name="DutyCyc">50</P>
+      <P Name="InternalGrounding">on</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Reference" Name="RF_Out1" SID="74">
+    <PortCounts out="1" lconn="1"/>
+    <P Name="Position">[4830, -345, 4945, -285]</P>
+    <P Name="ZOrder">1672</P>
+    <P Name="LibraryVersion">10.0</P>
+    <P Name="SourceBlock">simrfV2util1/Outport</P>
+    <P Name="SourceType">Outport</P>
+    <InstanceData>
+      <P Name="RTWMemSecFuncInitTerm">Inherit from model</P>
+      <P Name="RTWMemSecFuncExecute">Inherit from model</P>
+      <P Name="RTWMemSecDataConstants">Inherit from model</P>
+      <P Name="RTWMemSecDataInternal">Inherit from model</P>
+      <P Name="RTWMemSecDataParameters">Inherit from model</P>
+      <P Name="ContentPreviewEnabled">off</P>
+      <P Name="ClassName">output_gateway</P>
+      <P Name="SensorType">Ideal voltage</P>
+      <P Name="OutputFormat">Complex Baseband</P>
+      <P Name="CarrierFreq">0</P>
+      <P Name="CarrierFreq_unit">Hz</P>
+      <P Name="ZL">rf_z0_ohm</P>
+      <P Name="InternalGrounding">on</P>
+      <P Name="StepSize">sfw_sample_s</P>
+      <P Name="StepSize_unit">s</P>
+      <P Name="AutoStep">on</P>
+      <P Name="HalfPolyphaseLength">12</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Reference" Name="RF_PA1" SID="75">
+    <PortCounts lconn="1" rconn="1"/>
+    <P Name="Position">[4695, -345, 4815, -285]</P>
+    <P Name="ZOrder">1667</P>
+    <P Name="LibraryVersion">9.15</P>
+    <P Name="UserDataPersistent">on</P>
+    <P Name="UserData" Ref="bdmxdata:UserData_75"/>
+    <P Name="SourceBlock">simrfV2elements/Amplifier</P>
+    <P Name="SourceType">Amplifier</P>
+    <InstanceData>
+      <P Name="RTWMemSecFuncInitTerm">Inherit from model</P>
+      <P Name="RTWMemSecFuncExecute">Inherit from model</P>
+      <P Name="RTWMemSecDataConstants">Inherit from model</P>
+      <P Name="RTWMemSecDataInternal">Inherit from model</P>
+      <P Name="RTWMemSecDataParameters">Inherit from model</P>
+      <P Name="ContentPreviewEnabled">off</P>
+      <P Name="classname">amplifier</P>
+      <P Name="DataSource">Data file</P>
+      <P Name="File">unitygain.s2p</P>
+      <P Name="isNetworkObj">off</P>
+      <P Name="NetworkObject">sparameters(&apos;default.s2p&apos;)</P>
+      <P Name="Paramtype">S-parameters</P>
+      <P Name="Sparam">[0 0;1 0]</P>
+      <P Name="SparamFreq">1e9</P>
+      <P Name="SparamFreq_unit">Hz</P>
+      <P Name="SparamZ0">50</P>
+      <P Name="isRationalObj">off</P>
+      <P Name="RationalObject">rational(&apos;default.s2p&apos;)</P>
+      <P Name="Residues">0</P>
+      <P Name="Poles">0</P>
+      <P Name="DF">{0 0; 1 0}</P>
+      <P Name="Source_linear_gain">Available power gain</P>
+      <P Name="linear_gain">rf_pa_gain_db</P>
+      <P Name="linear_gain_unit">dB</P>
+      <P Name="AmAmAmPmTable">[-25,5,-1;-10,20,-2;0,27,5;5,28,12]</P>
+      <P Name="Zin">rf_z0_ohm</P>
+      <P Name="Zout">rf_z0_ohm</P>
+      <P Name="Source_Poly">Even and odd order</P>
+      <P Name="Poly_Coeffs">[0 1]</P>
+      <P Name="IPType">Output</P>
+      <P Name="IP2">inf</P>
+      <P Name="IP2_unit">dBm</P>
+      <P Name="IP3">inf</P>
+      <P Name="IP3_unit">dBm</P>
+      <P Name="P1dB">inf</P>
+      <P Name="P1dB_unit">dBm</P>
+      <P Name="Psat">inf</P>
+      <P Name="Psat_unit">dBm</P>
+      <P Name="Gcomp">inf</P>
+      <P Name="Gcomp_unit">dBm</P>
+      <P Name="InternalGrounding">on</P>
+      <P Name="SourceFreq">Extracted from data source</P>
+      <P Name="PlotFreq">[1e9:1e6:3e9]</P>
+      <P Name="PlotFreq_unit">Hz</P>
+      <P Name="PlotType">X-Y plane</P>
+      <P Name="YParam1">S(1,1)</P>
+      <P Name="YFormat1">Magnitude (dB)</P>
+      <P Name="YParam2">None</P>
+      <P Name="YFormat2">Magnitude (dB)</P>
+      <P Name="YOption">Linear</P>
+      <P Name="XOption">Linear</P>
+      <P Name="SparamRepresentation">Time domain</P>
+      <P Name="FitTol">-40</P>
+      <P Name="FitOpt">Fit individually</P>
+      <P Name="MaxPoles">48</P>
+      <P Name="AutoImpulseLength">on</P>
+      <P Name="ImpulseLength">1e-10</P>
+      <P Name="ImpulseLength_unit">s</P>
+      <P Name="MagModeling">off</P>
+      <P Name="AddNoise">on</P>
+      <P Name="NoiseType">Noise figure</P>
+      <P Name="NoiseDist">White</P>
+      <P Name="NF">rf_pa_nf_db</P>
+      <P Name="MinNF">0</P>
+      <P Name="Gopt">0</P>
+      <P Name="RN">0</P>
+      <P Name="CarrierFreq">0</P>
+      <P Name="CarrierFreq_unit">Hz</P>
+      <P Name="NoiseAutoImpulseLength">on</P>
+      <P Name="NoiseImpulseLength">1e-10</P>
+      <P Name="NoiseImpulseLength_unit">s</P>
+      <P Name="ConstS21NL">off</P>
+      <P Name="OpFreq">1</P>
+      <P Name="OpFreq_unit">GHz</P>
+      <P Name="SetOpFreqAsMaxS21">off</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Reference" Name="RF_Tap_Out1" SID="76">
+    <PortCounts out="1" lconn="1"/>
+    <P Name="Position">[4475, 605, 4590, 665]</P>
+    <P Name="ZOrder">1673</P>
+    <P Name="LibraryVersion">10.0</P>
+    <P Name="SourceBlock">simrfV2util1/Outport</P>
+    <P Name="SourceType">Outport</P>
+    <InstanceData>
+      <P Name="RTWMemSecFuncInitTerm">Inherit from model</P>
+      <P Name="RTWMemSecFuncExecute">Inherit from model</P>
+      <P Name="RTWMemSecDataConstants">Inherit from model</P>
+      <P Name="RTWMemSecDataInternal">Inherit from model</P>
+      <P Name="RTWMemSecDataParameters">Inherit from model</P>
+      <P Name="ContentPreviewEnabled">off</P>
+      <P Name="ClassName">output_gateway</P>
+      <P Name="SensorType">Ideal voltage</P>
+      <P Name="OutputFormat">Complex Baseband</P>
+      <P Name="CarrierFreq">0</P>
+      <P Name="CarrierFreq_unit">Hz</P>
+      <P Name="ZL">rf_z0_ohm</P>
+      <P Name="InternalGrounding">on</P>
+      <P Name="StepSize">sfw_sample_s</P>
+      <P Name="StepSize_unit">s</P>
+      <P Name="AutoStep">on</P>
+      <P Name="HalfPolyphaseLength">12</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Reference" Name="RF_VGA1" SID="77">
+    <PortCounts lconn="1" rconn="1"/>
+    <P Name="Position">[4560, -345, 4680, -285]</P>
+    <P Name="ZOrder">1666</P>
+    <P Name="LibraryVersion">9.15</P>
+    <P Name="UserDataPersistent">on</P>
+    <P Name="UserData" Ref="bdmxdata:UserData_77"/>
+    <P Name="SourceBlock">simrfV2elements/Amplifier</P>
+    <P Name="SourceType">Amplifier</P>
+    <InstanceData>
+      <P Name="RTWMemSecFuncInitTerm">Inherit from model</P>
+      <P Name="RTWMemSecFuncExecute">Inherit from model</P>
+      <P Name="RTWMemSecDataConstants">Inherit from model</P>
+      <P Name="RTWMemSecDataInternal">Inherit from model</P>
+      <P Name="RTWMemSecDataParameters">Inherit from model</P>
+      <P Name="ContentPreviewEnabled">off</P>
+      <P Name="classname">amplifier</P>
+      <P Name="DataSource">Data file</P>
+      <P Name="File">unitygain.s2p</P>
+      <P Name="isNetworkObj">off</P>
+      <P Name="NetworkObject">sparameters(&apos;default.s2p&apos;)</P>
+      <P Name="Paramtype">S-parameters</P>
+      <P Name="Sparam">[0 0;1 0]</P>
+      <P Name="SparamFreq">1e9</P>
+      <P Name="SparamFreq_unit">Hz</P>
+      <P Name="SparamZ0">50</P>
+      <P Name="isRationalObj">off</P>
+      <P Name="RationalObject">rational(&apos;default.s2p&apos;)</P>
+      <P Name="Residues">0</P>
+      <P Name="Poles">0</P>
+      <P Name="DF">{0 0; 1 0}</P>
+      <P Name="Source_linear_gain">Available power gain</P>
+      <P Name="linear_gain">rf_vga_gain_db</P>
+      <P Name="linear_gain_unit">dB</P>
+      <P Name="AmAmAmPmTable">[-25,5,-1;-10,20,-2;0,27,5;5,28,12]</P>
+      <P Name="Zin">rf_z0_ohm</P>
+      <P Name="Zout">rf_z0_ohm</P>
+      <P Name="Source_Poly">Even and odd order</P>
+      <P Name="Poly_Coeffs">[0 1]</P>
+      <P Name="IPType">Output</P>
+      <P Name="IP2">inf</P>
+      <P Name="IP2_unit">dBm</P>
+      <P Name="IP3">inf</P>
+      <P Name="IP3_unit">dBm</P>
+      <P Name="P1dB">inf</P>
+      <P Name="P1dB_unit">dBm</P>
+      <P Name="Psat">inf</P>
+      <P Name="Psat_unit">dBm</P>
+      <P Name="Gcomp">inf</P>
+      <P Name="Gcomp_unit">dBm</P>
+      <P Name="InternalGrounding">on</P>
+      <P Name="SourceFreq">Extracted from data source</P>
+      <P Name="PlotFreq">[1e9:1e6:3e9]</P>
+      <P Name="PlotFreq_unit">Hz</P>
+      <P Name="PlotType">X-Y plane</P>
+      <P Name="YParam1">S(1,1)</P>
+      <P Name="YFormat1">Magnitude (dB)</P>
+      <P Name="YParam2">None</P>
+      <P Name="YFormat2">Magnitude (dB)</P>
+      <P Name="YOption">Linear</P>
+      <P Name="XOption">Linear</P>
+      <P Name="SparamRepresentation">Time domain</P>
+      <P Name="FitTol">-40</P>
+      <P Name="FitOpt">Fit individually</P>
+      <P Name="MaxPoles">48</P>
+      <P Name="AutoImpulseLength">on</P>
+      <P Name="ImpulseLength">1e-10</P>
+      <P Name="ImpulseLength_unit">s</P>
+      <P Name="MagModeling">off</P>
+      <P Name="AddNoise">on</P>
+      <P Name="NoiseType">Noise figure</P>
+      <P Name="NoiseDist">White</P>
+      <P Name="NF">rf_vga_nf_db</P>
+      <P Name="MinNF">0</P>
+      <P Name="Gopt">0</P>
+      <P Name="RN">0</P>
+      <P Name="CarrierFreq">0</P>
+      <P Name="CarrierFreq_unit">Hz</P>
+      <P Name="NoiseAutoImpulseLength">on</P>
+      <P Name="NoiseImpulseLength">1e-10</P>
+      <P Name="NoiseImpulseLength_unit">s</P>
+      <P Name="ConstS21NL">off</P>
+      <P Name="OpFreq">1</P>
+      <P Name="OpFreq_unit">GHz</P>
+      <P Name="SetOpFreqAsMaxS21">off</P>
+    </InstanceData>
+  </Block>
+  <Block BlockType="Constant" Name="RX_Angle1" SID="78">
+    <P Name="Position">[5740, 367, 5805, 403]</P>
+    <P Name="ZOrder">1686</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="Value">gpr_rx_angle_deg</P>
+  </Block>
+  <Block BlockType="MATLABSystem" Name="RX_Antenna1" SID="79">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[5580, 332, 5715, 403]</P>
+    <P Name="ZOrder">1685</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="LibrarySourceProduct" Ref="bdmxdata:LibrarySourceProduct_79"/>
+    <P Name="System">phased.Collector</P>
+    <P Name="MaskType">phased.Collector</P>
+    <P Name="PropagationSpeed">physconst( &apos;LightSpeed&apos; )</P>
+    <P Name="OperatingFrequency">mean(sfw_freq_hz)</P>
+    <P Name="Wavefront">Plane</P>
+    <P Name="SensorGainMeasure">dB</P>
+    <P Name="Polarization">None</P>
+    <P Name="WeightsInputPort">off</P>
+    <P Name="SimulateUsing">Code generation</P>
+    <P Name="Sensor">phased.IsotropicAntennaElement</P>
+  </Block>
+  <Block BlockType="DiscreteFilter" Name="RX_BPF1" SID="80">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[5430, 335, 5555, 405]</P>
+    <P Name="ZOrder">1695</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="InputPortMap">u0</P>
+    <P Name="Numerator">rx_bpf_num</P>
+    <P Name="Denominator">rx_bpf_den</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="DiscreteFilter" Name="RX_Down_IF_BPF1" SID="81">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[5065, 335, 5235, 435]</P>
+    <P Name="ZOrder">1688</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="OpenFcn">ex18_filter_dialog(gcb);</P>
+    <P Name="InputPortMap">u0</P>
+    <P Name="Numerator">rx_down_if_bpf_num</P>
+    <P Name="Denominator">rx_down_if_bpf_den</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="Product" Name="RX_Down_Mixer1" SID="82">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[5285, 357, 5330, 408]</P>
+    <P Name="ZOrder">1687</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="Inputs">**</P>
+  </Block>
+  <Block BlockType="Gain" Name="RX_LNA1" SID="83">
+    <P Name="Position">[5355, 345, 5405, 395]</P>
+    <P Name="ZOrder">1696</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="Gain">rx_lna_gain</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="Constant" Name="Radiation_Angle1" SID="84">
+    <P Name="Position">[5032, -265, 5068, -200]</P>
+    <P Name="ZOrder">1679</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="Value">[0;0]</P>
+  </Block>
+  <Block BlockType="FromWorkspace" Name="SFW_Burst_Src1" SID="85">
+    <P Name="Position">[3645, -20, 3790, 20]</P>
+    <P Name="ZOrder">1661</P>
+    <P Name="VariableName">sfw_src_ts</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+    <P Name="Interpolate">off</P>
+    <P Name="OutputAfterFinalValue">Holding final value</P>
+  </Block>
+  <Block BlockType="Scope" Name="Scope_RF_Main_Out1" SID="86">
+    <PortCounts in="1"/>
+    <P Name="Position">[4975, -400, 5015, -360]</P>
+    <P Name="ZOrder">1675</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">top</P>
+    <P Name="GraphicalSettings">{&quot;AxesScalingProperties&quot;:{&quot;AlignXAxis&quot;:&quot;Center&quot;,&quot;AlignYAxis&quot;:&quot;Center&quot;,&quot;AutoScaleXAxisLimits&quot;:false,&quot;AxesScaling&quot;:&quot;Manual&quot;,&quot;AxesScalingNumUpdates&quot;:10,&quot;ExpandOnly&quot;:true,&quot;ScaleAxesLimitsAtStop&quot;:false,&quot;XAxisDataRange&quot;:100,&quot;YAxisDataRange&quot;:80},&quot;DisplayProperties&quot;:{&quot;ColorOrder&quot;:[&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;],&quot;DisplayContentCache&quot;:{&quot;LinePropertiesCache&quot;:{},&quot;PlotMagPhase&quot;:0,&quot;Title&quot;:&quot;&quot;,&quot;UserDefinedChannelNames&quot;:{}},&quot;DisplayLayoutDimensions&quot;:[1,1],&quot;DisplayPropertyDefaults&quot;:{&quot;MaxYLimMag&quot;:10,&quot;MaxYLimReal&quot;:10,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-10,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;YLabel&quot;:&quot;&quot;},&quot;SerializedDisplays&quot;:[{&quot;LinePropertiesCache&quot;:{},&quot;MaxYLimMag&quot;:10,&quot;MaxYLimReal&quot;:10,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-10,&quot;NumLines&quot;:2,&quot;Placement&quot;:0,&quot;PlotAsMagnitudePhase&quot;:false,&quot;PlotMagPhase&quot;:0,&quot;ShowContent&quot;:1,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;UserDefinedChannelNames&quot;:{},&quot;YLabel&quot;:&quot;&quot;}]},&quot;MeasurementChannel&quot;:0,&quot;Style&quot;:{&quot;AxesColor&quot;:[0.070588235294117646,0.070588235294117646,0.070588235294117646],&quot;BackgroundColor&quot;:[0.12941176470588237,0.12941176470588237,0.12941176470588237],&quot;BarWidth&quot;:[0.9,0.9],&quot;ChannelNames&quot;:&quot;&quot;,&quot;DefaultLegendLabel&quot;:[&quot;RF_Out&quot;],&quot;FontSize&quot;:8.5,&quot;LabelsColor&quot;:[0.85098039215686272,0.85098039215686272,0.85098039215686272],&quot;LineCache&quot;:null,&quot;LineColor&quot;:[&quot;auto&quot;,&quot;auto&quot;],&quot;LineEdgeAlpha&quot;:[1,1],&quot;LineFaceAlpha&quot;:[1,1],&quot;LineLabels&quot;:[&quot;&quot;,&quot;&quot;],&quot;LineStyle&quot;:[&quot;-&quot;,&quot;-&quot;],&quot;LineTrueColor&quot;:[[1,0.90980392156862744,0.39215686274509803],[0.14901960784313725,0.5490196078431373,0.8666666666666667]],&quot;LineWidth&quot;:[1.5,1.5],&quot;Marker&quot;:[&quot;none&quot;,&quot;none&quot;],&quot;MinimizeControls&quot;:false,&quot;NumLinesForDisplays&quot;:[2],&quot;OffsetView&quot;:true,&quot;PlotType&quot;:&quot;Auto&quot;,&quot;PreserveColors&quot;:false,&quot;Visible&quot;:[true,true]}}</P>
+    <P Name="WindowPosition">[1.000000,49.000000,1707.000000,996.000000,]</P>
+    <P Name="ScopeFrameLocation">window</P>
+    <P Name="WasSavedAsWebScope">on</P>
+    <P Name="Floating">off</P>
+    <P Name="MultipleDisplayCache">[{&quot;MaxYLimMag&quot;:1.7704608894587242,&quot;MaxYLimReal&quot;:1.7499913882223244,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-1.636769440863135,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;YLabel&quot;:&quot;&quot;}]</P>
+    <P Name="NumInputPorts">1</P>
+    <P Name="ActiveDisplayYMinimum">-1.636769440863135</P>
+    <P Name="ActiveDisplayYMaximum">1.7499913882223244</P>
+    <P Name="DataLogging">on</P>
+    <P Name="DataLoggingVariableName">rf_main_out_log1</P>
+  </Block>
+  <Block BlockType="Scope" Name="Scope_RX_Down_IF1" SID="87">
+    <PortCounts in="1"/>
+    <P Name="Position">[4945, 300, 4985, 340]</P>
+    <P Name="ZOrder">1689</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">right</P>
+    <P Name="GraphicalSettings">{&quot;GraphicalSettings&quot;:{&quot;LegacySettings&quot;:true,&quot;Style&quot;:{&quot;Style&quot;:{&quot;PlotType&quot;:&quot;Auto&quot;}}}}</P>
+    <P Name="WasSavedAsWebScope">on</P>
+    <P Name="Floating">off</P>
+    <P Name="NumInputPorts">1</P>
+    <P Name="DataLoggingVariableName">ScopeData1</P>
+  </Block>
+  <Block BlockType="Scope" Name="Scope_RX_IQ_Baseband1" SID="88">
+    <PortCounts in="1"/>
+    <P Name="Position">[4365, 375, 4405, 415]</P>
+    <P Name="ZOrder">1691</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">top</P>
+    <P Name="GraphicalSettings">{&quot;AxesScalingProperties&quot;:{&quot;AlignXAxis&quot;:&quot;Center&quot;,&quot;AlignYAxis&quot;:&quot;Center&quot;,&quot;AutoScaleXAxisLimits&quot;:false,&quot;AxesScaling&quot;:&quot;Manual&quot;,&quot;AxesScalingNumUpdates&quot;:10,&quot;ExpandOnly&quot;:true,&quot;ScaleAxesLimitsAtStop&quot;:false,&quot;XAxisDataRange&quot;:100,&quot;YAxisDataRange&quot;:80},&quot;DisplayProperties&quot;:{&quot;ColorOrder&quot;:[&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;],&quot;DisplayContentCache&quot;:{&quot;LinePropertiesCache&quot;:{},&quot;PlotMagPhase&quot;:0,&quot;Title&quot;:&quot;&quot;,&quot;UserDefinedChannelNames&quot;:{}},&quot;DisplayLayoutDimensions&quot;:[1,1],&quot;DisplayPropertyDefaults&quot;:{&quot;MaxYLimMag&quot;:10,&quot;MaxYLimReal&quot;:12.145859488038969,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-10.393053470581396,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;YLabel&quot;:&quot;&quot;},&quot;SerializedDisplays&quot;:[{&quot;LinePropertiesCache&quot;:{},&quot;MaxYLimMag&quot;:10,&quot;MaxYLimReal&quot;:12.145859488038969,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-10.393053470581396,&quot;NumLines&quot;:2,&quot;Placement&quot;:0,&quot;PlotAsMagnitudePhase&quot;:false,&quot;PlotMagPhase&quot;:0,&quot;ShowContent&quot;:1,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;UserDefinedChannelNames&quot;:{},&quot;YLabel&quot;:&quot;&quot;}]},&quot;MeasurementChannel&quot;:0,&quot;Style&quot;:{&quot;AxesColor&quot;:[0.070588235294117646,0.070588235294117646,0.070588235294117646],&quot;BackgroundColor&quot;:[0.12941176470588237,0.12941176470588237,0.12941176470588237],&quot;BarWidth&quot;:[0.9,0.9],&quot;ChannelNames&quot;:&quot;&quot;,&quot;DefaultLegendLabel&quot;:[&quot;IQ_LPF_Complex&quot;],&quot;FontSize&quot;:8.5,&quot;LabelsColor&quot;:[0.85098039215686272,0.85098039215686272,0.85098039215686272],&quot;LineCache&quot;:null,&quot;LineColor&quot;:[&quot;auto&quot;,&quot;auto&quot;],&quot;LineEdgeAlpha&quot;:[1,1],&quot;LineFaceAlpha&quot;:[1,1],&quot;LineLabels&quot;:[&quot;&quot;,&quot;&quot;],&quot;LineStyle&quot;:[&quot;-&quot;,&quot;-&quot;],&quot;LineTrueColor&quot;:[[1,0.90980392156862744,0.39215686274509803],[0.14901960784313725,0.5490196078431373,0.8666666666666667]],&quot;LineWidth&quot;:[1.5,1.5],&quot;Marker&quot;:[&quot;none&quot;,&quot;none&quot;],&quot;MinimizeControls&quot;:false,&quot;NumLinesForDisplays&quot;:[2],&quot;OffsetView&quot;:true,&quot;PlotType&quot;:&quot;Auto&quot;,&quot;PreserveColors&quot;:false,&quot;Visible&quot;:[true,true]}}</P>
+    <P Name="WindowPosition">[1.000000,49.000000,1707.000000,996.000000,]</P>
+    <P Name="ScopeFrameLocation">window</P>
+    <P Name="WasSavedAsWebScope">on</P>
+    <P Name="Floating">off</P>
+    <P Name="MultipleDisplayCache">[{&quot;MaxYLimMag&quot;:2.3818761004031916,&quot;MaxYLimReal&quot;:2.3781578305073614,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-2.3818761004031916,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;YLabel&quot;:&quot;&quot;}]</P>
+    <P Name="NumInputPorts">1</P>
+    <P Name="ActiveDisplayYMinimum">-2.3818761004031916</P>
+    <P Name="ActiveDisplayYMaximum">2.3781578305073614</P>
+    <P Name="DataLogging">on</P>
+    <P Name="DataLoggingVariableName">rx_iq_scope_log1</P>
+  </Block>
+  <Block BlockType="Scope" Name="Scope_SFW_Source1" SID="89">
+    <PortCounts in="1"/>
+    <P Name="Position">[3782, 60, 3818, 95]</P>
+    <P Name="ZOrder">1663</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="GraphicalSettings">{&quot;Style&quot;:{&quot;BackgroundColor&quot;:[0.12941176470588237,0.12941176470588237,0.12941176470588237],&quot;AxesColor&quot;:[0.07058823529411765,0.07058823529411765,0.07058823529411765],&quot;LabelsColor&quot;:[0.8509803921568627,0.8509803921568627,0.8509803921568627],&quot;PreserveColors&quot;:false,&quot;Visible&quot;:[true],&quot;LineStyle&quot;:[&quot;-&quot;],&quot;LineWidth&quot;:[1.5],&quot;BarWidth&quot;:[0.9],&quot;LineColor&quot;:[&quot;auto&quot;],&quot;LineFaceAlpha&quot;:[1],&quot;LineEdgeAlpha&quot;:[1],&quot;Marker&quot;:[&quot;none&quot;],&quot;FontSize&quot;:8.5,&quot;LineTrueColor&quot;:[[1,0.9098039215686274,0.39215686274509803]],&quot;ChannelNames&quot;:&quot;&quot;,&quot;DefaultLegendLabel&quot;:[&quot;SFW_Burst_Src&quot;],&quot;PlotType&quot;:&quot;Auto&quot;,&quot;NumLinesForDisplays&quot;:[1],&quot;OffsetView&quot;:true,&quot;LineLabels&quot;:[&quot;&quot;],&quot;MinimizeControls&quot;:false,&quot;LineCache&quot;:null},&quot;MeasurementChannel&quot;:0,&quot;AxesScalingProperties&quot;:{&quot;AxesScaling&quot;:&quot;Manual&quot;,&quot;ExpandOnly&quot;:true,&quot;AxesScalingNumUpdates&quot;:10,&quot;ScaleAxesLimitsAtStop&quot;:true,&quot;YAxisDataRange&quot;:80,&quot;AlignYAxis&quot;:&quot;Center&quot;,&quot;AutoScaleXAxisLimits&quot;:false,&quot;XAxisDataRange&quot;:100,&quot;AlignXAxis&quot;:&quot;Center&quot;},&quot;DisplayProperties&quot;:{&quot;DisplayLayoutDimensions&quot;:[1,1],&quot;DisplayPropertyDefaults&quot;:{&quot;MaxYLimMag&quot;:10,&quot;MaxYLimReal&quot;:10,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-10,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;YLabel&quot;:&quot;&quot;},&quot;DisplayContentCache&quot;:{&quot;Title&quot;:&quot;&quot;,&quot;LinePropertiesCache&quot;:{},&quot;UserDefinedChannelNames&quot;:{},&quot;PlotMagPhase&quot;:0},&quot;SerializedDisplays&quot;:[{&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;LinePropertiesCache&quot;:{},&quot;UserDefinedChannelNames&quot;:{},&quot;PlotMagPhase&quot;:0,&quot;MaxYLimMag&quot;:10,&quot;MaxYLimReal&quot;:10,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-10,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;YLabel&quot;:&quot;&quot;,&quot;NumLines&quot;:1,&quot;ShowContent&quot;:1,&quot;Placement&quot;:0}],&quot;ColorOrder&quot;:[&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;]}}</P>
+    <P Name="WindowPosition">[573.000000,323.000000,560.000000,420.000000,]</P>
+    <P Name="ScopeFrameLocation">window</P>
+    <P Name="WasSavedAsWebScope">on</P>
+    <P Name="Floating">off</P>
+    <P Name="MultipleDisplayCache">[{&quot;MaxYLimMag&quot;:1.25,&quot;MaxYLimReal&quot;:1.25,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-1.25,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;YLabel&quot;:&quot;&quot;}]</P>
+    <P Name="NumInputPorts">1</P>
+    <P Name="ActiveDisplayYMinimum">-1.25</P>
+    <P Name="ActiveDisplayYMaximum">1.25</P>
+    <P Name="DataLoggingVariableName">ScopeData2</P>
+  </Block>
+  <Block BlockType="Scope" Name="Scope_TX_Radiated1" SID="90">
+    <PortCounts in="1"/>
+    <P Name="Position">[5295, -360, 5335, -320]</P>
+    <P Name="ZOrder">1674</P>
+    <P Name="GraphicalSettings">{&quot;AxesScalingProperties&quot;:{&quot;AlignXAxis&quot;:&quot;Center&quot;,&quot;AlignYAxis&quot;:&quot;Center&quot;,&quot;AutoScaleXAxisLimits&quot;:false,&quot;AxesScaling&quot;:&quot;Manual&quot;,&quot;AxesScalingNumUpdates&quot;:10,&quot;ExpandOnly&quot;:true,&quot;ScaleAxesLimitsAtStop&quot;:false,&quot;XAxisDataRange&quot;:100,&quot;YAxisDataRange&quot;:80},&quot;DisplayProperties&quot;:{&quot;ColorOrder&quot;:[&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;,&quot;auto&quot;],&quot;DisplayContentCache&quot;:{&quot;LinePropertiesCache&quot;:{},&quot;PlotMagPhase&quot;:0,&quot;Title&quot;:&quot;&quot;,&quot;UserDefinedChannelNames&quot;:{}},&quot;DisplayLayoutDimensions&quot;:[1,1],&quot;DisplayPropertyDefaults&quot;:{&quot;MaxYLimMag&quot;:10,&quot;MaxYLimReal&quot;:10,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-10,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;YLabel&quot;:&quot;&quot;},&quot;SerializedDisplays&quot;:[{&quot;LinePropertiesCache&quot;:{},&quot;MaxYLimMag&quot;:10,&quot;MaxYLimReal&quot;:10,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-10,&quot;NumLines&quot;:2,&quot;Placement&quot;:0,&quot;PlotAsMagnitudePhase&quot;:false,&quot;PlotMagPhase&quot;:0,&quot;ShowContent&quot;:1,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;UserDefinedChannelNames&quot;:{},&quot;YLabel&quot;:&quot;&quot;}]},&quot;MeasurementChannel&quot;:0,&quot;Style&quot;:{&quot;AxesColor&quot;:[0.070588235294117646,0.070588235294117646,0.070588235294117646],&quot;BackgroundColor&quot;:[0.12941176470588237,0.12941176470588237,0.12941176470588237],&quot;BarWidth&quot;:[0.9,0.9],&quot;ChannelNames&quot;:&quot;&quot;,&quot;DefaultLegendLabel&quot;:[&quot;TX_Radiator&quot;],&quot;FontSize&quot;:8.5,&quot;LabelsColor&quot;:[0.85098039215686272,0.85098039215686272,0.85098039215686272],&quot;LineCache&quot;:null,&quot;LineColor&quot;:[&quot;auto&quot;,&quot;auto&quot;],&quot;LineEdgeAlpha&quot;:[1,1],&quot;LineFaceAlpha&quot;:[1,1],&quot;LineLabels&quot;:[&quot;&quot;,&quot;&quot;],&quot;LineStyle&quot;:[&quot;-&quot;,&quot;-&quot;],&quot;LineTrueColor&quot;:[[1,0.90980392156862744,0.39215686274509803],[0.14901960784313725,0.5490196078431373,0.8666666666666667]],&quot;LineWidth&quot;:[1.5,1.5],&quot;Marker&quot;:[&quot;none&quot;,&quot;none&quot;],&quot;MinimizeControls&quot;:false,&quot;NumLinesForDisplays&quot;:[2],&quot;OffsetView&quot;:true,&quot;PlotType&quot;:&quot;Auto&quot;,&quot;PreserveColors&quot;:false,&quot;Visible&quot;:[true,true]}}</P>
+    <P Name="WindowPosition">[1.000000,49.000000,1707.000000,996.000000,]</P>
+    <P Name="ScopeFrameLocation">window</P>
+    <P Name="WasSavedAsWebScope">on</P>
+    <P Name="Floating">off</P>
+    <P Name="MultipleDisplayCache">[{&quot;MaxYLimMag&quot;:1.7704608894587242,&quot;MaxYLimReal&quot;:1.4772831975677947,&quot;MinYLimMag&quot;:0,&quot;MinYLimReal&quot;:-1.4322645787381445,&quot;PlotAsMagnitudePhase&quot;:false,&quot;ShowGrid&quot;:true,&quot;ShowLegend&quot;:false,&quot;Title&quot;:&quot;%&lt;SignalLabel&gt;&quot;,&quot;YLabel&quot;:&quot;&quot;}]</P>
+    <P Name="NumInputPorts">1</P>
+    <P Name="ActiveDisplayYMinimum">-1.4322645787381445</P>
+    <P Name="ActiveDisplayYMaximum">1.4772831975677947</P>
+    <P Name="DataLoggingVariableName">ScopeData3</P>
+  </Block>
+  <Block BlockType="Scope" Name="Scope_Tap_Upconverted1" SID="91">
+    <PortCounts in="1"/>
+    <P Name="Position">[5145, 685, 5185, 725]</P>
+    <P Name="ZOrder">1676</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="GraphicalSettings">{&quot;GraphicalSettings&quot;:{&quot;LegacySettings&quot;:true,&quot;Style&quot;:{&quot;Style&quot;:{&quot;PlotType&quot;:&quot;Auto&quot;}}}}</P>
+    <P Name="WasSavedAsWebScope">on</P>
+    <P Name="Floating">off</P>
+    <P Name="NumInputPorts">1</P>
+    <P Name="DataLoggingVariableName">ScopeData4</P>
+  </Block>
+  <Block BlockType="SpectrumAnalyzer" Name="Spec_Src1" SID="92">
+    <PortCounts in="1"/>
+    <P Name="Position">[3840, -115, 3900, -65]</P>
+    <P Name="ZOrder">1662</P>
+    <P Name="OpenAtSimulationStart">off</P>
+    <P Name="WasSavedAsWebScope">on</P>
+    <P Name="SampleRateSource">Property</P>
+    <P Name="SampleRate">sfw_fs_hz</P>
+    <P Name="PlotAsTwoSidedSpectrum">off</P>
+    <P Name="RBWSource">Property</P>
+    <P Name="RBW">100e3</P>
+    <P Name="WindowInvariantSamplesPerUpdate">on</P>
+    <P Name="FrequencySpan">Start and stop frequencies</P>
+    <P Name="StartFrequency">0</P>
+    <P Name="StopFrequency">200e6</P>
+    <P Name="Title">SFW source spectrum, 0-200 MHz</P>
+    <P Name="YLimits">[-100 30]</P>
+  </Block>
+  <Block BlockType="SubSystem" Name="Subsystem1" SID="93">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[4610, -9, 4940, 159]</P>
+    <P Name="ZOrder">1697</P>
+    <P Name="ContentPreviewEnabled">on</P>
+    <System Ref="system_93"/>
+  </Block>
+  <Block BlockType="MATLABSystem" Name="TX_Radiator1" SID="104">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[5075, -331, 5205, -264]</P>
+    <P Name="ZOrder">1678</P>
+    <P Name="LibrarySourceProduct" Ref="bdmxdata:LibrarySourceProduct_104"/>
+    <P Name="System">phased.Radiator</P>
+    <P Name="MaskType">phased.Radiator</P>
+    <P Name="PropagationSpeed">physconst( &apos;LightSpeed&apos; )</P>
+    <P Name="OperatingFrequency">mean(sfw_freq_hz)</P>
+    <P Name="CombineRadiatedSignals">on</P>
+    <P Name="SensorGainMeasure">dB</P>
+    <P Name="Polarization">None</P>
+    <P Name="WeightsInputPort">off</P>
+    <P Name="SimulateUsing">Code generation</P>
+    <P Name="Sensor">phased.IsotropicAntennaElement</P>
+  </Block>
+  <Block BlockType="Sin" Name="Tap_LO_200MHz1" SID="105">
+    <PortCounts out="1"/>
+    <P Name="Position">[4670, 695, 4710, 825]</P>
+    <P Name="ZOrder">1680</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">right</P>
+    <P Name="Amplitude">tap_lo_amp</P>
+    <P Name="Frequency">2*pi*tap_lo_hz</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="Product" Name="Tap_Mixer_200MHz1" SID="106">
+    <PortCounts in="2" out="1"/>
+    <P Name="Position">[4735, 622, 4780, 673]</P>
+    <P Name="ZOrder">1681</P>
+    <P Name="Inputs">**</P>
+  </Block>
+  <Block BlockType="DiscreteFilter" Name="Tap_Up_BPF1" SID="107">
+    <PortCounts in="1" out="1"/>
+    <P Name="Position">[4965, 610, 5135, 690]</P>
+    <P Name="ZOrder">1682</P>
+    <P Name="OpenFcn">ex18_filter_dialog(gcb);</P>
+    <P Name="InputPortMap">u0</P>
+    <P Name="Numerator">tap_up_bpf_num</P>
+    <P Name="Denominator">tap_up_bpf_den</P>
+    <P Name="SampleTime">sfw_sample_s</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_after_gpr_channel1" SID="108">
+    <PortCounts in="1"/>
+    <P Name="Position">[6065, 140, 6165, 170]</P>
+    <P Name="ZOrder">1708</P>
+    <P Name="VariableName">probe_after_gpr_channel1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_after_pa1" SID="109">
+    <PortCounts in="1"/>
+    <P Name="Position">[5025, -460, 5055, -360]</P>
+    <P Name="ZOrder">1716</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">right</P>
+    <P Name="VariableName">probe_after_pa1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_iq_mixer_raw1" SID="111">
+    <PortCounts in="1"/>
+    <P Name="Position">[4850, 240, 4880, 340]</P>
+    <P Name="ZOrder">1714</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">right</P>
+    <P Name="VariableName">probe_iq_mixer_raw1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_rx_antenna_raw1" SID="112">
+    <PortCounts in="1"/>
+    <P Name="Position">[5555, 430, 5585, 530]</P>
+    <P Name="ZOrder">1709</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="VariableName">probe_rx_antenna_raw1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_rx_down_mixer_raw1" SID="114">
+    <PortCounts in="1"/>
+    <P Name="Position">[5245, 240, 5275, 340]</P>
+    <P Name="ZOrder">1712</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="NameLocation">right</P>
+    <P Name="VariableName">probe_rx_down_mixer_raw1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_sfw_src1" SID="115">
+    <PortCounts in="1"/>
+    <P Name="Position">[3820, 110, 3850, 210]</P>
+    <P Name="ZOrder">1706</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="VariableName">probe_sfw_src1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_tap_mixer_raw1" SID="116">
+    <PortCounts in="1"/>
+    <P Name="Position">[4845, 695, 4875, 795]</P>
+    <P Name="ZOrder">1710</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="VariableName">probe_tap_mixer_raw1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_tap_raw1" SID="117">
+    <PortCounts in="1"/>
+    <P Name="Position">[4605, 695, 4635, 795]</P>
+    <P Name="ZOrder">1717</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="VariableName">probe_tap_raw1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Block BlockType="ToWorkspace" Name="probe_tx_radiated1" SID="119">
+    <PortCounts in="1"/>
+    <P Name="Position">[5335, -280, 5365, -180]</P>
+    <P Name="ZOrder">1707</P>
+    <P Name="BlockRotation">270</P>
+    <P Name="BlockMirror">on</P>
+    <P Name="NameLocation">left</P>
+    <P Name="VariableName">probe_tx_radiated1</P>
+    <P Name="MaxDataPoints">inf</P>
+    <P Name="SaveFormat">Structure With Time</P>
+    <P Name="FixptAsFi">on</P>
+    <P Name="SampleTime">-1</P>
+  </Block>
+  <Line LineType="Connection">
+    <P Name="ZOrder">170</P>
+    <P Name="Src">73#rconn:1</P>
+    <P Name="Points">[50, 0]</P>
+    <Branch ConnectType="DEST_DEST">
+      <P Name="Src">71#lconn:1</P>
+      <P Name="Points">[0, 55]</P>
+    </Branch>
+    <Branch ConnectType="DEST_SRC">
+      <P Name="Dst">72#lconn:1</P>
+    </Branch>
+  </Line>
+  <Line LineType="Connection">
+    <P Name="ZOrder">62</P>
+    <P Name="Src">65#lconn:1</P>
+    <P Name="Dst">56#lconn:1</P>
+  </Line>
+  <Line LineType="Connection">
+    <P Name="ZOrder">63</P>
+    <P Name="Src">77#rconn:1</P>
+    <P Name="Dst">75#lconn:1</P>
+  </Line>
+  <Line LineType="Connection">
+    <P Name="ZOrder">64</P>
+    <P Name="Src">70#rconn:1</P>
+    <P Name="Dst">77#lconn:1</P>
+  </Line>
+  <Line LineType="Connection">
+    <P Name="ZOrder">65</P>
+    <P Name="Src">70#lconn:1</P>
+    <P Name="Points">[-90, 0; 0, 315]</P>
+    <P Name="Dst">72#rconn:1</P>
+  </Line>
+  <Line LineType="Connection">
+    <P Name="ZOrder">66</P>
+    <P Name="Src">75#rconn:1</P>
+    <P Name="Dst">74#lconn:1</P>
+  </Line>
+  <Line LineType="Connection">
+    <P Name="ZOrder">67</P>
+    <P Name="Src">72#rconn:2</P>
+    <P Name="Points">[18, 0; 0, 545]</P>
+    <P Name="Dst">76#lconn:1</P>
+  </Line>
+  <Line LineType="Connection">
+    <P Name="ZOrder">68</P>
+    <P Name="Src">72#lconn:2</P>
+    <P Name="Points">[-20, 0]</P>
+    <P Name="Dst">65#rconn:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">75</P>
+    <P Name="Src">85#out:1</P>
+    <P Name="Points">[5, 0]</P>
+    <Branch>
+      <P Name="ZOrder">74</P>
+      <P Name="Points">[25, 0]</P>
+      <Branch>
+        <P Name="ZOrder">73</P>
+        <P Name="Points">[10, 0]</P>
+        <Branch>
+          <P Name="ZOrder">72</P>
+          <P Name="Dst">115#in:1</P>
+        </Branch>
+        <Branch>
+          <P Name="ZOrder">71</P>
+          <P Name="Dst">73#in:1</P>
+        </Branch>
+      </Branch>
+      <Branch>
+        <P Name="ZOrder">70</P>
+        <P Name="Dst">92#in:1</P>
+      </Branch>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">69</P>
+      <P Name="Dst">89#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">76</P>
+    <P Name="Src">61#out:1</P>
+    <P Name="Points">[-20, 0]</P>
+    <P Name="Dst">59#in:2</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">79</P>
+    <P Name="Src">58#out:1</P>
+    <P Name="Points">[-20, 0]</P>
+    <Branch>
+      <P Name="ZOrder">78</P>
+      <P Name="Dst">64#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">77</P>
+      <P Name="Dst">111#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">80</P>
+    <P Name="Src">78#out:1</P>
+    <P Name="Dst">79#in:2</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">83</P>
+    <P Name="Src">106#out:1</P>
+    <P Name="Points">[75, 0]</P>
+    <Branch>
+      <P Name="ZOrder">82</P>
+      <P Name="Dst">116#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">81</P>
+      <P Name="Dst">107#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">90</P>
+    <P Name="Src">57#out:1</P>
+    <P Name="Points">[-37, 0]</P>
+    <Branch>
+      <P Name="ZOrder">89</P>
+      <P Name="Points">[0, -75]</P>
+      <Branch>
+        <P Name="ZOrder">88</P>
+        <P Name="Points">[0, -50]</P>
+        <Branch>
+          <P Name="ZOrder">87</P>
+          <P Name="Points">[0, -195]</P>
+          <P Name="Dst">93#in:1</P>
+        </Branch>
+      </Branch>
+      <Branch>
+        <P Name="ZOrder">85</P>
+        <P Name="Dst">68#in:1</P>
+      </Branch>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">84</P>
+      <P Name="Dst">88#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">91</P>
+    <P Name="Src">80#out:1</P>
+    <P Name="Dst">83#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">96</P>
+    <P Name="Src">74#out:1</P>
+    <P Name="Points">[45, 0]</P>
+    <Branch>
+      <P Name="ZOrder">95</P>
+      <P Name="Points">[45, 0]</P>
+      <Branch>
+        <P Name="ZOrder">94</P>
+        <P Name="Dst">104#in:1</P>
+      </Branch>
+      <Branch>
+        <P Name="ZOrder">93</P>
+        <P Name="Dst">109#in:1</P>
+      </Branch>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">92</P>
+      <P Name="Dst">86#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">97</P>
+    <P Name="Src">64#out:2</P>
+    <P Name="Points">[-7, 0; 0, 15]</P>
+    <P Name="Dst">63#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">104</P>
+    <P Name="Src">81#out:1</P>
+    <P Name="Points">[-20, 0]</P>
+    <Branch>
+      <P Name="ZOrder">103</P>
+      <P Name="Points">[-35, 0]</P>
+      <Branch>
+        <P Name="ZOrder">102</P>
+        <P Name="Points">[-40, 0]</P>
+        <Branch>
+          <P Name="ZOrder">101</P>
+          <P Name="Dst">58#in:1</P>
+        </Branch>
+        <Branch>
+          <P Name="ZOrder">100</P>
+          <P Name="Dst">87#in:1</P>
+        </Branch>
+      </Branch>
+      <Branch>
+        <P Name="ZOrder">99</P>
+        <P Name="Dst">67#in:1</P>
+      </Branch>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">107</P>
+    <P Name="Src">93#out:1</P>
+    <P Name="Points">[45, 0]</P>
+    <Branch>
+      <P Name="ZOrder">106</P>
+      <P Name="Points">[0, 110]</P>
+      <P Name="Dst">49#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">105</P>
+      <P Name="Points">[0, -60]</P>
+      <P Name="Dst">50#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">110</P>
+    <P Name="Src">79#out:1</P>
+    <P Name="Points">[-5, 0]</P>
+    <Branch>
+      <P Name="ZOrder">109</P>
+      <P Name="Dst">80#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">108</P>
+      <P Name="Dst">112#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">111</P>
+    <P Name="Src">63#out:1</P>
+    <P Name="Points">[-5, 0]</P>
+    <P Name="Dst">57#in:2</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">114</P>
+    <P Name="Src">82#out:1</P>
+    <P Name="Points">[-20, 0]</P>
+    <Branch>
+      <P Name="ZOrder">113</P>
+      <P Name="Dst">81#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">112</P>
+      <P Name="Dst">114#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">117</P>
+    <P Name="Src">51#out:1</P>
+    <P Name="Points">[0, 45]</P>
+    <Branch>
+      <P Name="ZOrder">116</P>
+      <P Name="Points">[0, 195]</P>
+      <P Name="Dst">79#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">115</P>
+      <P Name="Dst">108#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">118</P>
+    <P Name="Src">62#out:1</P>
+    <P Name="Points">[-5, 0]</P>
+    <P Name="Dst">57#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">119</P>
+    <P Name="Src">64#out:1</P>
+    <P Name="Points">[-7, 0; 0, -25]</P>
+    <P Name="Dst">62#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">126</P>
+    <P Name="Src">107#out:1</P>
+    <P Name="Points">[25, 0]</P>
+    <Branch>
+      <P Name="ZOrder">125</P>
+      <P Name="Points">[55, 0]</P>
+      <Branch>
+        <P Name="ZOrder">124</P>
+        <P Name="Points">[50, 0]</P>
+        <Branch>
+          <P Name="ZOrder">123</P>
+          <P Name="Points">[107, 0; 0, -255]</P>
+          <P Name="Dst">82#in:2</P>
+        </Branch>
+      </Branch>
+      <Branch>
+        <P Name="ZOrder">121</P>
+        <P Name="Dst">69#in:1</P>
+      </Branch>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">120</P>
+      <P Name="Dst">91#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">127</P>
+    <P Name="Src">59#out:1</P>
+    <P Name="Points">[0, -15]</P>
+    <P Name="Dst">58#in:2</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">128</P>
+    <P Name="Src">83#out:1</P>
+    <P Name="Dst">82#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">129</P>
+    <P Name="Src">60#out:1</P>
+    <P Name="Points">[15, 0]</P>
+    <P Name="Dst">59#in:1</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">132</P>
+    <P Name="Src">76#out:1</P>
+    <P Name="Points">[25, 0]</P>
+    <Branch>
+      <P Name="ZOrder">131</P>
+      <P Name="Dst">117#in:1</P>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">130</P>
+      <P Name="Dst">106#in:1</P>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">139</P>
+    <P Name="Src">104#out:1</P>
+    <P Name="Points">[64, 0]</P>
+    <Branch>
+      <P Name="ZOrder">138</P>
+      <P Name="Points">[76, 0]</P>
+      <Branch>
+        <P Name="ZOrder">137</P>
+        <P Name="Points">[575, 0]</P>
+        <P Name="Dst">51#in:1</P>
+      </Branch>
+      <Branch>
+        <P Name="ZOrder">136</P>
+        <P Name="Dst">119#in:1</P>
+      </Branch>
+    </Branch>
+    <Branch>
+      <P Name="ZOrder">135</P>
+      <P Name="Points">[0, -45]</P>
+      <Branch>
+        <P Name="ZOrder">134</P>
+        <P Name="Dst">90#in:1</P>
+      </Branch>
+      <Branch>
+        <P Name="ZOrder">133</P>
+        <P Name="Points">[0, -55]</P>
+        <P Name="Dst">66#in:1</P>
+      </Branch>
+    </Branch>
+  </Line>
+  <Line>
+    <P Name="ZOrder">140</P>
+    <P Name="Src">84#out:1</P>
+    <P Name="Points">[0, -10]</P>
+    <P Name="Dst">104#in:2</P>
+  </Line>
+  <Line>
+    <P Name="ZOrder">141</P>
+    <P Name="Src">105#out:1</P>
+    <P Name="Points">[0, -30]</P>
+    <P Name="Dst">106#in:2</P>
+  </Line>
+  <Annotation SID="120">
+    <P Name="Position">[4307, 229, 5880, 845]</P>
+    <P Name="InternalMargins">[0, 0, 0, 0]</P>
+    <P Name="FixedWidth">on</P>
+    <P Name="ForegroundColor">[0.901961, 0.901961, 1.000000]</P>
+    <P Name="BackgroundColor">[0.901961, 0.901961, 1.000000]</P>
+    <P Name="DropShadow">on</P>
+    <P Name="AnnotationType">area_annotation</P>
+    <P Name="ZOrder">6</P>
+    <P Name="FontSize">12</P>
+  </Annotation>
+  <Annotation SID="121">
+    <P Name="Name">Tap branch upconversion -&gt; RX downconversion -&gt; I/Q demod: RF_Tap_Out -&gt; Tap_Up_BPF -&gt; RX_Down_Mixer -&gt; RX_Down_IF_BPF -&gt; Mixer_I/Q -&gt; LPF_I/Q -&gt; Complex</P>
+    <P Name="Position">[3438, 270, 4204, 285]</P>
+    <P Name="InternalMargins">[0, 0, 0, 0]</P>
+    <P Name="ZOrder">-6</P>
+  </Annotation>
+  <Annotation SID="122">
+    <P Name="Position">[4374, -446, 5412, -179]</P>
+    <P Name="InternalMargins">[0, 0, 0, 0]</P>
+    <P Name="FixedHeight">on</P>
+    <P Name="FixedWidth">on</P>
+    <P Name="ForegroundColor">[0.901961, 0.901961, 1.000000]</P>
+    <P Name="BackgroundColor">[0.901961, 0.901961, 1.000000]</P>
+    <P Name="DropShadow">on</P>
+    <P Name="AnnotationType">area_annotation</P>
+    <P Name="ZOrder">4</P>
+    <P Name="FontSize">12</P>
+  </Annotation>
+  <Annotation SID="123">
+    <P Name="Position">[3626, -126, 3976, 127]</P>
+    <P Name="InternalMargins">[0, 0, 0, 0]</P>
+    <P Name="FixedWidth">on</P>
+    <P Name="ForegroundColor">[0.901961, 0.901961, 1.000000]</P>
+    <P Name="BackgroundColor">[0.901961, 0.901961, 1.000000]</P>
+    <P Name="DropShadow">on</P>
+    <P Name="AnnotationType">area_annotation</P>
+    <P Name="ZOrder">5</P>
+    <P Name="FontSize">12</P>
+  </Annotation>
+</System>
